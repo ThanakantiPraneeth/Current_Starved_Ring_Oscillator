@@ -5,10 +5,7 @@ Designing and simulating a **Current-Starved Ring Oscillator (CSRO)**—often us
 
 This project presents the design, schematic implementation, simulation, performance evaluation, physical layout, and verification of a Current-Starved Ring Oscillator using **90 nm CMOS technology** in Cadence Virtuoso.
 
-For a comprehensive breakdown of the design methodology, performance metrics, Monte Carlo analysis, and PVT (Process, Voltage, Temperature) considerations, please refer to the detailed technical document: **CSRO_REPORT.pdf**.
-
----
-
+--
 ## Table of Contents
 
 1. [Theory of Operation](#theory-of-operation)
@@ -589,3 +586,5 @@ Overall, this project demonstrates the complete design flow of a Current-Starved
 - Monte Carlo statistical analysis.
 - DRC and LVS verification.
 - Post-layout simulation.
+
+A Great Thankyou to Dr.P.RangaBabu (Associate Proffesor) for his Guidance and Mentoring.
