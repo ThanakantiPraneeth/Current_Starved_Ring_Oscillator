@@ -21,17 +21,14 @@ For a comprehensive breakdown of the design methodology, performance metrics, Mo
 8. [ADE Explorer and Calculator Measurements](#ade-explorer-and-calculator-measurements)
 9. [Frequency and Power Analysis](#frequency-and-power-analysis)
 10. [PVT Analysis](#pvt-analysis)
-11. [Monte Carlo Analysis](#monte-carlo-analysis)
-12. [Layout](#layout)
-13. [Design Rule Check (DRC)](#design-rule-check-drc)
-14. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
-15. [Parasitic Extraction](#parasitic-extraction-pex)
-16. [Post-Layout Simulation](#post-layout-simulation)
-17. [Overall Performance Summary](#overall-performance-summary)
-18. [Applications](#applications-of-current-starved-ring-oscillators)
-19. [Tools and Technologies](#tools-and-technologies)
-20. [Project Structure](#project-structure)
-21. [Conclusion](#conclusion)
+11. [Layout](#layout)
+12. [Design Rule Check (DRC)](#design-rule-check-drc)
+13. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
+14. [Overall Performance Summary](#overall-performance-summary)
+15. [Applications](#applications-of-current-starved-ring-oscillators)
+16. [Tools and Technologies](#tools-and-technologies)
+17. [Project Structure](#project-structure)
+18. [Conclusion](#conclusion)
 
 ---
 
@@ -395,43 +392,7 @@ The analysis considered five process corners.
 
 ---
 
-## Monte Carlo Analysis
 
-Monte Carlo analysis was conducted to evaluate the statistical behavior of the oscillator under random device parameter variations.
-
-A total of 200 simulation samples were used for each control-voltage condition.
-
-The analysis considered:
-
-1. \(V_{ctrl}=1\ V\)
-2. \(V_{ctrl}=0.1\ V\)
-
-### Monte Carlo Results
-
-| Parameter | Vctrl = 1 V | Vctrl = 0.1 V |
-|---|---:|---:|
-| Number of samples | 200 | 200 |
-| Yield | 100% | 100% |
-| Mean frequency | 7.96888 GHz | 420.938 MHz |
-| Frequency standard deviation | 636.128 MHz | 132.900 MHz |
-| Minimum frequency | 6.528 GHz | 154.8 MHz |
-| Maximum frequency | 9.715 GHz | 903.7 MHz |
-| Mean power | 261.445 µW | 3.49059 µW |
-| Power standard deviation | 28.6619 µW | 1.28092 µW |
-| Minimum power | 199.8 µW | 1.062 µW |
-| Maximum power | 338.7 µW | 8.839 µW |
-
-### Monte Carlo Observations
-
-At a control voltage of 1 V, the oscillator provides a mean frequency of approximately 7.97 GHz and mean power consumption of 261.445 µW.
-
-At a control voltage of 0.1 V, the mean frequency decreases to approximately 420.938 MHz, while mean power decreases to approximately 3.49059 µW.
-
-All 200 samples produced valid results under both simulation conditions, corresponding to a 100% simulated yield.
-
-The statistical results demonstrate the influence of random device variations on oscillator frequency and power consumption.
-
----
 
 ## Layout
 
@@ -510,37 +471,7 @@ The reported comparison results confirm that the extracted layout connectivity a
 
 ---
 
-## Parasitic Extraction (PEX)
 
-Parasitic extraction was performed to account for the additional resistance and capacitance introduced by the physical layout and interconnects.
-
-The extracted view was used for post-layout transient simulation to evaluate the oscillator after including layout parasitic effects.
-
-The main objectives of parasitic extraction are:
-
-- To identify parasitic capacitances.
-- To account for interconnect resistance.
-- To evaluate the impact of physical routing.
-- To improve the accuracy of post-layout performance evaluation.
-
----
-
-## Post-Layout Simulation
-
-Post-layout simulation was conducted using the extracted circuit to evaluate oscillator performance after including layout parasitics.
-
-The technical report documents the following comparison:
-
-| Parameter | Frequency |
-|---|---:|
-| Pre-layout simulation | 8.076 GHz |
-| Post-layout simulation | 8.088 GHz |
-
-The post-layout result demonstrates that the oscillator maintains its intended operation after parasitic extraction.
-
-The small frequency difference indicates that the extracted layout preserves the intended oscillation behavior under the reported simulation conditions.
-
----
 
 ## Overall Performance Summary
 
@@ -598,7 +529,6 @@ The following tools and technologies were used in the design, simulation, and ve
 | 90 nm CMOS PDK | Transistor models and physical design rules |
 | DRC | Design-rule verification |
 | LVS | Layout-to-schematic verification |
-| PEX | Parasitic extraction |
 | GitHub | Project documentation and version control |
 
 ---
@@ -611,9 +541,6 @@ A suggested organization for the GitHub repository is:
 Current-Starved-Ring-Oscillator/
 │
 ├── README.md
-│
-├── Documentation/
-│   └── CSRO_REPORT.pdf
 │
 ├── Schematic/
 │   └── CSRO_Schematic.png
@@ -660,17 +587,5 @@ Overall, this project demonstrates the complete design flow of a Current-Starved
 - Parametric analysis.
 - PVT analysis.
 - Monte Carlo statistical analysis.
-- Physical layout implementation.
 - DRC and LVS verification.
-- Parasitic extraction.
 - Post-layout simulation.
-
-The project provides practical experience in analog and mixed-signal IC design, CMOS circuit simulation, physical implementation, and verification using industry-standard EDA tools.
-
----
-
-**Project:** Current-Starved Ring Oscillator (CSRO)  
-**Technology:** 90 nm CMOS  
-**Design Tool:** Cadence Virtuoso 6.1.8  
-**Simulator:** Spectre  
-**Documentation:** CSRO_REPORT.pdf
