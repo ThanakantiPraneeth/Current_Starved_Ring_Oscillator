@@ -1,0 +1,34 @@
+C nmos1v(MOS) nmos1v(MOS)
+N D D
+N G G
+N S S
+N B B
+
+C pmos1v(MOS) pmos1v(MOS)
+N D D
+N G G
+N S S
+N B B
+
+C "csro schematic csro" "csro layout csro"
+N net1 avC7
+N net4 avC8
+N net7 avC6
+N net5 avC5
+N Vosc Vosc
+N Vctrl Vctrl
+N vdd! vdd!
+N gnd! gnd!
+I PM11 avD7_1
+I PM5 avD7_6
+I PM4 avD7_4
+I PM3 avD7_2
+I PM2 avD7_7
+I PM1 avD7_5
+I PM0 avD7_3
+I NM3 avD1_2
+I NM4 avD1_1
+I NM0 avD1_3
+I NM1 avD1_4
+I NM2 avD1_5
+

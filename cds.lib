@@ -1,0 +1,5 @@
+# File Created by vlsi16 at Tue Nov 10 16:22:22 2026
+# assisted by CdsLibEditor
+SOFTINCLUDE /home/install/IC618/share/cdssetup/cds.lib
+DEFINE csro CSRO_90nm-main/CSRO_PVG/csro
+DEFINE avTech /home/install/ASSURA41/tools.lnx86/assura/etc/avtech/avTech

@@ -1,0 +1,11 @@
+
+***** Begin Label Report *****
+
+ Label in cell 'csro layout csro':
+  info: Assign pin label "Vctrl" at (0.0600, 4.5500) to layer `Metal1_p'.
+  info: Assign pin label "gnd!" at (4.5500, 0.0600) to layer `Metal1_p'.
+  info: Assign pin label "Vosc" at (9.0400, 4.5500) to layer `Metal1_p'.
+  info: Assign pin label "vdd!" at (4.5500, 9.8400) to layer `Metal1_p'.
+
+***** End of Label Report *****
+

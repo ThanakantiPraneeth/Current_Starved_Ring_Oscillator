@@ -1,0 +1,49 @@
+\o Program:		@(#)$CDS: cdsLibEditor version 6.1.8 - CAT37 10/18/2022 20:13 (sjfdcl1032) $
+\o Sub version:		sub-version  s292 
+\o Arguments:		-cdslib /home/vlsi16/Desktop/csro02/cds.lib -mpssession virtuoso717538 -mpshost cad18 -mpsversion 6.18 
+\o Working Directory:	cad18:/home/vlsi16/Desktop/csro02
+\o 64-bit offsets
+\a nrSetWindowVisibility(cdsLibEditor "show")
+\o Qt version: 		5.9.1
+\a nrSetCurrentWindow(cdsLibEditor)
+\a nrListItemAction(cdsLibEditor->mainTable 0 0)
+\o Active cell: 0 0 "cdsDefTechLib"
+\a nrResizeWindow(cdsLibEditor list(95 123 500 400))
+\a nrSetCurrentWindow(cdsLibEditor)
+\a nrListItemAction(cdsLibEditor->mainTable 21 0)
+\o Active cell: 21 0 "vijay"
+\a cdsLibEditor->editDeletePopupButton->value = t
+\a nrListItemAction(cdsLibEditor->mainTable 21 1)
+\o Active cell: 21 1 "/home/vlsi16/Desktop/226ec1009/vijay"
+\a nrListItemAction(cdsLibEditor->mainTable 20 1)
+\o Active cell: 20 1 "$STDCELL/giolib045"
+\a nrListItemAction(cdsLibEditor->mainTable 21 1)
+\o Active cell: 21 1 ""
+\a cdsLibEditor->editAddLibButton->value = t
+\a newLibraryDialog->filePathComboBox->value = "/home/vlsi16/Desktop/csro02"
+\a newLibraryDialog->useMappedName->value = nil
+\a nrSetWindowVisibility(newLibraryDialog "show")
+\a nrSetCurrentWindow(newLibraryDialog)
+\a nrResizeWindow(newLibraryDialog list(80 66 531 513))
+\a newLibraryDialog->dirListWidget->value = "CSRO_90nm-main"
+\a newLibraryDialog->filePathComboBox->value = "/home/vlsi16/Desktop/csro02/CSRO_90nm-main"
+\a nrListItemAction(newLibraryDialog->dirListWidget 1 0)
+\a newLibraryDialog->dirListWidget->value = nil
+\a newLibraryDialog->dirListWidget->value = "CSRO_PVG"
+\a newLibraryDialog->filePathComboBox->value = "/home/vlsi16/Desktop/csro02/CSRO_90nm-main/CSRO_PVG"
+\a nrListItemAction(newLibraryDialog->dirListWidget 1 0)
+\a newLibraryDialog->dirListWidget->value = nil
+\a newLibraryDialog->libraryListBox->value = "csro"
+\a newLibraryDialog->useMappedName->value = t
+\a newLibraryDialog->libraryName->value = "csro"
+\a newLibraryDialog->okButton->value = t
+\a nrListItemRename(cdsLibEditor->mainTable, 21 1 "/home/vlsi16/Desktop/csro02/CSRO_90nm-main/CSRO_PVG/csro")
+\a newLibraryDialog->libraryListBox->value = nil
+\a newLibraryDialog->useMappedName->value = nil
+\a newLibraryDialog->libraryName->value = ""
+\a nrListItemAction(cdsLibEditor->mainTable 22 0)
+\o Active cell: 22 0 ""
+\a nrSetCurrentWindow(cdsLibEditor)
+\a nrResizeWindow(newLibraryDialog list(80 29 531 513))
+\a cdsLibEditor->fileSaveButton->value = t
+\a exit(0)
