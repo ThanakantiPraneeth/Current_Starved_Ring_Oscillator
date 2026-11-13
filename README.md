@@ -529,4 +529,11 @@ Overall, this project demonstrates the complete design flow of a Current-Starved
 - DRC and LVS verification.
 - Post-layout simulation.
 
+Author Information:-
+Author: Thanakanti Praneeth Institution: IIITDM Kurnool, Andhra Pradesh
+Roll Number: 226EC1002	Faculty: Dr. Rangababu P
+Specialization: VLSI & Microelectronics	
+Department: Electronics & Communication Engineering
+
+
 A Great Thankyou to Dr.P.RangaBabu (Associate Proffesor) for his Guidance and Mentoring.
