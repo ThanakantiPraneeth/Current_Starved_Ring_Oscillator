@@ -13,16 +13,15 @@ This project presents the design, schematic implementation, simulation, performa
 3. [Mathematical Background](#mathematical-background)
 4. [Schematic Design](#schematic-design)
 5. [Transient Simulation](#transient-simulation)
-6. [Power and Performance](#power-and-performance)
-7. [ADE Explorer and Calculator Measurements](#ade-explorer-and-calculator-measurements)
-8. [Layout](#layout)
-9. [Design Rule Check (DRC)](#design-rule-check-drc)
-10. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
-11. [Overall Performance Summary](#overall-performance-summary)
-12. [Applications](#applications-of-current-starved-ring-oscillators)
-13. [Tools and Technologies](#tools-and-technologies)
-14. [Project Structure](#project-structure)
-15. [Conclusion](#conclusion)
+6. [ADE Explorer and Calculator Measurements](#ade-explorer-and-calculator-measurements)
+7. [Layout](#layout)
+8. [Design Rule Check (DRC)](#design-rule-check-drc)
+9. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
+10. [Overall Performance Summary](#overall-performance-summary)
+11. [Applications](#applications-of-current-starved-ring-oscillators)
+12. [Tools and Technologies](#tools-and-technologies)
+13. [Project Structure](#project-structure)
+14. [Conclusion](#conclusion)
 
 ---
 
@@ -237,35 +236,6 @@ An additional ADE Explorer screenshot shows an oscillation frequency of approxim
 
 ---
 
-## Power and Performance
-
-The average power consumption of the oscillator was evaluated using the supply-power waveform.
-
-The average power is calculated using:
-
-\[
-P_{avg}=V_{DD}\times I_{avg}
-\]
-
-The calculator expression used in ADE Explorer was:
-
-```skill
-average(getData(":pwr" ?result "tran"))
-```
-
-**Output waveform alongside power consumption:**
-
-![Power Waveform 1](Screenshot%20from%202026-11-03%2011-59-22.jpg)
-
-**Detailed view of average power calculations:**
-
-![Power Waveform 2](Screenshot%20from%202026-11-03%2012-11-28.jpg)
-
-The additional ADE Explorer result shows an average power of approximately **115.4 µW**.
-
-This measurement belongs to the displayed ADE configuration and is separate from the nominal power result documented in the technical report.
-
----
 
 ## ADE Explorer and Calculator Measurements
 
@@ -311,36 +281,6 @@ These values belong to the displayed ADE configuration. They should be treated s
 
 ---
 
-## Frequency and Power Analysis
-
-A parametric analysis was performed by varying the control voltage while maintaining the supply voltage at 1.8 V.
-
-The control voltage was investigated over the range of 0 V to 1 V.
-
-The analysis demonstrates the relationship between control voltage, oscillation frequency, and average power consumption.
-
-### Frequency Variation
-
-As the control voltage increases, the available current through the PMOS current-source devices increases.
-
-This reduces the charging and discharging time of the internal nodes, resulting in lower propagation delay and higher oscillation frequency.
-
-### Power Variation
-
-The average power consumption increases with the control voltage because more current is available to the inverter stages.
-
-This establishes a trade-off between operating frequency and power consumption.
-
-| Control Voltage | Frequency Trend | Power Trend |
-|---|---|---|
-| 0 V | Low | Low |
-| 0.2 V | Increasing | Increasing |
-| 0.4 V | Increasing | Increasing |
-| 0.6 V | Increasing | Increasing |
-| 0.8 V | Increasing | Increasing |
-| 1.0 V | Approximately 8.1 GHz in the nominal report | Approximately 260 µW in the nominal report |
-
----
 
 ## Layout
 
@@ -428,8 +368,6 @@ The following table summarizes the major performance results obtained during the
 | Analysis | Main Result |
 |---|---|
 | Transient analysis | Sustained periodic oscillation |
-| Nominal frequency | Approximately 8.076 GHz |
-| Additional ADE screenshot | Approximately 13.2 GHz |
 | Nominal average power | Approximately 260 µW |
 | Additional ADE screenshot power | 115.4 µW |
 | DRC | 0 reported violations |
