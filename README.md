@@ -5,7 +5,7 @@ Designing and simulating a **Current-Starved Ring Oscillator (CSRO)**—often us
 
 This project presents the design, schematic implementation, simulation, performance evaluation, physical layout, and verification of a Current-Starved Ring Oscillator using **90 nm CMOS technology** in Cadence Virtuoso.
 
---
+
 ## Table of Contents
 
 1. [Theory of Operation](#theory-of-operation)
@@ -13,19 +13,16 @@ This project presents the design, schematic implementation, simulation, performa
 3. [Mathematical Background](#mathematical-background)
 4. [Schematic Design](#schematic-design)
 5. [Transient Simulation](#transient-simulation)
-6. [Frequency Analysis](#frequency-analysis)
-7. [Power and Performance](#power-and-performance)
-8. [ADE Explorer and Calculator Measurements](#ade-explorer-and-calculator-measurements)
-9. [Frequency and Power Analysis](#frequency-and-power-analysis)
-10. [PVT Analysis](#pvt-analysis)
-11. [Layout](#layout)
-12. [Design Rule Check (DRC)](#design-rule-check-drc)
-13. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
-14. [Overall Performance Summary](#overall-performance-summary)
-15. [Applications](#applications-of-current-starved-ring-oscillators)
-16. [Tools and Technologies](#tools-and-technologies)
-17. [Project Structure](#project-structure)
-18. [Conclusion](#conclusion)
+6. [Power and Performance](#power-and-performance)
+7. [ADE Explorer and Calculator Measurements](#ade-explorer-and-calculator-measurements)
+8. [Layout](#layout)
+9. [Design Rule Check (DRC)](#design-rule-check-drc)
+10. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
+11. [Overall Performance Summary](#overall-performance-summary)
+12. [Applications](#applications-of-current-starved-ring-oscillators)
+13. [Tools and Technologies](#tools-and-technologies)
+14. [Project Structure](#project-structure)
+15. [Conclusion](#conclusion)
 
 ---
 
@@ -74,7 +71,7 @@ The current-starved ring oscillator was designed using a 90 nm CMOS process in C
 | Simulator | Spectre |
 | Main analysis | Transient |
 | Physical verification | DRC and LVS |
-| Post-layout analysis | Parasitic-extracted simulation |
+
 
 ### Main Design Components
 
@@ -345,52 +342,6 @@ This establishes a trade-off between operating frequency and power consumption.
 
 ---
 
-## PVT Analysis
-
-Process, Voltage, and Temperature (PVT) analysis was performed to investigate the sensitivity of the oscillator to manufacturing and operating-condition variations.
-
-The analysis considered five process corners.
-
-### Process Corners
-
-| Process Corner | Description |
-|---|---|
-| FF | Fast NMOS, Fast PMOS |
-| FS | Fast NMOS, Slow PMOS |
-| NN | Nominal NMOS, Nominal PMOS |
-| SF | Slow NMOS, Fast PMOS |
-| SS | Slow NMOS, Slow PMOS |
-
-### Simulation Conditions
-
-| Parameter | Values |
-|---|---|
-| Control voltage | 0.5 V, 0.625 V, 0.75 V, 0.875 V, 1 V |
-| Temperature | -40°C, 27°C, 125°C |
-| Process corners | FF, FS, NN, SF, SS |
-| Supply voltage | 1.8 V |
-
-### PVT Results
-
-| Performance Parameter | Observed Result |
-|---|---:|
-| Maximum frequency | 13.87 GHz |
-| Minimum frequency | 1.238 GHz |
-| Maximum average power | 469.9 µW |
-| Minimum average power | 19.24 µW |
-
-### PVT Observations
-
-- The FF process corner generally provides higher oscillation frequency.
-- The SS process corner generally provides lower oscillation frequency.
-- Increasing temperature generally reduces oscillation frequency under the investigated conditions.
-- Higher control voltage increases the available current and generally increases power consumption.
-- The oscillator maintains oscillation over the investigated temperature and process conditions.
-
----
-
-
-
 ## Layout
 
 After completing the schematic-level design and simulations, the circuit was implemented in Cadence Virtuoso Layout Suite XL.
@@ -481,16 +432,10 @@ The following table summarizes the major performance results obtained during the
 | Additional ADE screenshot | Approximately 13.2 GHz |
 | Nominal average power | Approximately 260 µW |
 | Additional ADE screenshot power | 115.4 µW |
-| Frequency tuning | Controlled using Vctrl |
-| PVT frequency range | 1.238–13.87 GHz |
-| PVT power range | 19.24–469.9 µW |
-| Monte Carlo samples | 200 per condition |
-| Monte Carlo yield | 100% for both conditions |
 | DRC | 0 reported violations |
 | LVS | 0 reported mismatches |
-| Post-layout frequency | Approximately 8.088 GHz |
 
-**Note:** The frequency and power values correspond to different simulation configurations and analysis conditions. They should not be interpreted as measurements from one common operating point.
+
 
 ---
 
@@ -555,9 +500,6 @@ Current-Starved-Ring-Oscillator/
 ├── Verification/
 │   ├── LVS_Summary.png
 │   └── LVS_Match.png
-│
-└── Post_Layout/
-    └── Post_Layout_Simulation.png
 ```
 
 **Note:** The folder structure above is a suggested GitHub organization. The files should be placed in the corresponding folders before using these paths in Markdown image links.
