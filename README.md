@@ -512,8 +512,6 @@ The Current-Starved Ring Oscillator was designed and evaluated using Cadence Vir
 
 The simulation results demonstrate sustained oscillation, controllable frequency operation, and the expected relationship between control voltage, propagation delay, and power consumption.
 
-PVT analysis was used to investigate variations in process corners and temperature, while Monte Carlo analysis evaluated the statistical effects of random device variations.
-
 The physical layout was verified using DRC and LVS, with zero reported DRC violations and zero reported schematic-to-layout mismatches.
 
 Post-layout simulation further confirmed that the oscillator maintains its intended functionality after parasitic extraction.
@@ -524,8 +522,6 @@ Overall, this project demonstrates the complete design flow of a Current-Starved
 - Transient simulation.
 - Frequency and power analysis.
 - Parametric analysis.
-- PVT analysis.
-- Monte Carlo statistical analysis.
 - DRC and LVS verification.
 - Post-layout simulation.
 
