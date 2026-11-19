@@ -1,8 +1,8 @@
 # Current-Starved Ring Oscillator (CSRO)
 
-Designing and simulating a **3-Stage Current-Starved Ring Oscillator (CSRO)**—often used as a Voltage-Controlled Oscillator (VCO)—in Cadence Virtuoso involves building a 12-transistor current-mirror biased inverter chain and running transient, frequency, power, and physical verification flows[cite: 22, 23, 27, 29].
+Designing and simulating a **3-Stage Current-Starved Ring Oscillator (CSRO)**—often used as a Voltage-Controlled Oscillator (VCO)—in Cadence Virtuoso involves building a 12-transistor current-mirror biased inverter chain and running transient, frequency, power, and physical verification flows.
 
-This project presents the complete design, schematic implementation, initial-condition transient simulation, performance evaluation, physical layout, and verification (DRC, LVS, and QRC/RCX parasitic extraction) of a **3-Stage Current-Starved Ring Oscillator** using **90 nm CMOS technology (`gpdk090`)** in Cadence Virtuoso IC 6.1.8[cite: 22, 30].
+This project presents the complete design, schematic implementation, initial-condition transient simulation, performance evaluation, physical layout, and verification (DRC, LVS, and QRC/RCX parasitic extraction) of a **3-Stage Current-Starved Ring Oscillator** using **90 nm CMOS technology (`gpdk090`)** in Cadence Virtuoso IC 6.1.8.
 
 ---
 
@@ -31,12 +31,12 @@ This project presents the complete design, schematic implementation, initial-con
 
 A conventional ring oscillator generates a periodic output waveform by connecting an odd number of inverter stages in a closed loop, but its oscillation frequency is fixed by process, voltage, and temperature (PVT) delays.
 
-A **Current-Starved Ring Oscillator (CSRO)** overcomes this limitation by regulating the current available to charge and discharge the load capacitance of each inverter stage via current-mirror biasing transistors controlled by an external control voltage ($V_{ctrl}$)[cite: 23]:
+A **Current-Starved Ring Oscillator (CSRO)** overcomes this limitation by regulating the current available to charge and discharge the load capacitance of each inverter stage via current-mirror biasing transistors controlled by an external control voltage ($V_{ctrl}$):
 
-- **Biasing and Current Mirror Stage (`NM0`, `NM1`, `PM0`):** The external control voltage $V_{ctrl}$ (`1.8 V`) drives the gate of bias input NMOS `NM0`, establishing a reference drain current $I_{ref}$ through diode-connected NMOS `NM1` and diode-connected PMOS `PM0`[cite: 22, 23]. This reference current is mirrored simultaneously across the upper PMOS current sources (`PM1`–`PM3`) and the lower NMOS current sinks (`NM2`–`NM4`)[cite: 23].
-- **Three-Stage Current-Starved Inverter Ring (`PM1`–`PM6`, `NM2`–`NM4`):** Three cascaded CMOS inverter stages (`PM4`/`NM2`, `PM5`/`NM3`, and `PM6`/`NM4`) are starved of unlimited supply current by the upper PMOS current sources and lower NMOS current sinks[cite: 22, 23].
-- **Closed-Loop Feedback & Oscillation Condition:** The output of the third inverter stage (`vosc`) feeds directly back to the input of the first stage[cite: 23]. Because an odd number of inverting stages ($N = 3$) provides $180^\circ$ of DC phase inversion plus an additional $180^\circ$ of frequency-dependent RC phase shift (totaling $360^\circ$ with loop gain $\ge 1$), the circuit satisfies the Barkhausen criterion and sustains continuous oscillation[cite: 23].
-- **Frequency Tuning Mechanism:** Varying $V_{ctrl}$ modulates the mirrored drain current $I_D$, directly controlling the slew rate and propagation delay $t_d$ of each inverter stage[cite: 23].
+- **Biasing and Current Mirror Stage (`NM0`, `NM1`, `PM0`):** The external control voltage $V_{ctrl}$ (`1.8 V`) drives the gate of bias input NMOS `NM0`, establishing a reference drain current $I_{ref}$ through diode-connected NMOS `NM1` and diode-connected PMOS `PM0`. This reference current is mirrored simultaneously across the upper PMOS current sources (`PM1`–`PM3`) and the lower NMOS current sinks (`NM2`–`NM4`).
+- **Three-Stage Current-Starved Inverter Ring (`PM1`–`PM6`, `NM2`–`NM4`):** Three cascaded CMOS inverter stages (`PM4`/`NM2`, `PM5`/`NM3`, and `PM6`/`NM4`) are starved of unlimited supply current by the upper PMOS current sources and lower NMOS current sink.
+- **Closed-Loop Feedback & Oscillation Condition:** The output of the third inverter stage (`vosc`) feeds directly back to the input of the first stage Because an odd number of inverting stages ($N = 3$) provides $180^\circ$ of DC phase inversion plus an additional $180^\circ$ of frequency-dependent RC phase shift (totaling $360^\circ$ with loop gain $\ge 1$), the circuit satisfies the Barkhausen criterion and sustains continuous oscillation.
+- **Frequency Tuning Mechanism:** Varying $V_{ctrl}$ modulates the mirrored drain current $I_D$, directly controlling the slew rate and propagation delay $t_d$ of each inverter stage.
 
 ---
 
