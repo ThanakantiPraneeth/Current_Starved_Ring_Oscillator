@@ -233,7 +233,7 @@ Total DRC violations: 0
 ---
 
 ## Layout Versus Schematic (LVS)
-![LVS](Screenshot%20from%202026-11-10%2016-25-27.png)
+![LVS](Screenshot%20from%202026-11-10%2016-25-47.png)
 
 Layout Versus Schematic (LVS) verification was performed using **Assura LVS** to verify exact correspondence between the physical layout and the original schematic (`csrosch`).
 
