@@ -1,473 +1,430 @@
+The **Commit changes...** button in the top-right corner of your GitHub editor is currently disabled because no edits have been saved into the text box yet (it still contains your old `README.md` text ending at line 472).
 
+Follow these steps to replace it cleanly in one go:
+
+1. **Click inside the black code editor area** (anywhere around lines 447–472).
+
+
+2. **Select everything** by pressing **`Ctrl + A`** (or **`Cmd + A`** on Mac), then press **`Backspace`** or **`Delete`** so the file is completely blank (only line `1` remains).
+3. **Copy the code block below** using the **Copy** icon in the top-right corner of the box, click back inside line `1` of the GitHub editor, and press **`Ctrl + V`** (or **`Cmd + V`**).
+4. Once pasted, the **Commit changes...** button in the top-right corner will turn bright green/blue. Click **Commit changes...** and confirm in the pop-up dialog.
+
+
+
+markdown
 # Current-Starved Ring Oscillator (CSRO)
 
-Designing and simulating a **Current-Starved Ring Oscillator (CSRO)**—often used as a Voltage-Controlled Oscillator (VCO)—in Cadence Virtuoso involves building the inverter chain with current-limiting transistors and running transient and parametric simulations.
+Designing and simulating a **3-Stage Current-Starved Ring Oscillator (CSRO)**—often used as a Voltage-Controlled Oscillator (VCO)—in Cadence Virtuoso involves building a 12-transistor current-mirror biased inverter chain and running transient, frequency, power, and physical verification flows[cite: 22, 23, 27, 29].
 
-This project presents the design, schematic implementation, simulation, performance evaluation, physical layout, and verification of a Current-Starved Ring Oscillator using **90 nm CMOS technology** in Cadence Virtuoso.
+This project presents the complete design, schematic implementation, initial-condition transient simulation, performance evaluation, physical layout, and verification (DRC, LVS, and QRC/RCX parasitic extraction) of a **3-Stage Current-Starved Ring Oscillator** using **90 nm CMOS technology (`gpdk090`)** in Cadence Virtuoso IC 6.1.8[cite: 22, 30].
 
+---
 
 ## Table of Contents
 
 1. [Theory of Operation](#theory-of-operation)
-2. [Design Specifications](#design-specifications)
+2. [Design Specifications & Component Breakdown](#design-specifications--component-breakdown)
 3. [Mathematical Background](#mathematical-background)
 4. [Schematic Design](#schematic-design)
-5. [Transient Simulation](#transient-simulation)
-6. [ADE Explorer and Calculator Measurements](#ade-explorer-and-calculator-measurements)
-7. [Layout](#layout)
+5. [Transient Simulation & Initial Condition Setup](#transient-simulation--initial-condition-setup)
+6. [Frequency & Power Analysis (ADE Explorer & ViVA XL)](#frequency--power-analysis-ade-explorer--viva-xl)
+7. [Physical Layout](#physical-layout)
 8. [Design Rule Check (DRC)](#design-rule-check-drc)
-9. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
-10. [Overall Performance Summary](#overall-performance-summary)
-11. [Applications](#applications-of-current-starved-ring-oscillators)
-12. [Tools and Technologies](#tools-and-technologies)
-13. [Project Structure](#project-structure)
-14. [Conclusion](#conclusion)
+9. [Layout Versus Schematic (LVS) & RCX Extraction](#layout-versus-schematic-lvs--rcx-extraction)
+10. [Step-by-Step Implementation Workflow](#step-by-step-implementation-workflow)
+11. [Overall Performance Summary](#overall-performance-summary)
+12. [Applications](#applications-of-current-starved-ring-oscillators)
+13. [Tools and Technologies](#tools-and-technologies)
+14. [Project Structure](#project-structure)
+15. [Conclusion](#conclusion)
+16. [Author & Acknowledgment](#author--acknowledgment)
 
 ---
 
 ## Theory of Operation
 
-A conventional ring oscillator generates a periodic output waveform by connecting an odd number of inverter stages in a closed loop, but it inherently has limited control over its oscillation frequency.
+A conventional ring oscillator generates a periodic output waveform by connecting an odd number of inverter stages in a closed loop, but its oscillation frequency is fixed by process, voltage, and temperature (PVT) delays.
 
-A **Current-Starved Ring Oscillator (CSRO)** improves upon this by limiting the current available to each inverter stage using PMOS source transistors.
+A **Current-Starved Ring Oscillator (CSRO)** overcomes this limitation by regulating the current available to charge and discharge the load capacitance of each inverter stage via current-mirror biasing transistors controlled by an external control voltage ($V_{ctrl}$)[cite: 23]:
 
-The approximate oscillation frequency for an N-stage ring oscillator is governed by:
-
-\[
-F_{osc}=\frac{1}{2\cdot N\cdot t_d}
-\]
-
-Where:
-
-- \(F_{osc}\) = Oscillation frequency.
-- \(N\) = Number of delay stages.
-- \(t_d\) = Average propagation delay of each stage.
-
-In a current-starved configuration, modifying the control voltage (\(V_{ctrl}\)) changes the available charging current, which in turn alters the charging/discharging time of the internal nodes and directly tunes the oscillation frequency.
-
-The core components of this 90 nm CMOS architecture operate as follows:
-
-* **Delay stages:** Each CMOS inverter stage (comprising one middle PMOS and one bottom NMOS) introduces a finite propagation delay to the signal.
-* **PMOS current source:** An upper PMOS transistor acts as a current source, limiting the charging current available to the inverter.
-* **Frequency control:** The control voltage (\(V_{ctrl}\)) is applied to the gate of the upper PMOS; varying this voltage determines how quickly the output node charges, dynamically controlling the delay.
-* **Feedback connection:** The output of the final inverter is routed back to the input of the first inverter, ensuring continuous switching and sustained oscillation under a 1.8 V supply (\(V_{DD}\)).
+- **Biasing and Current Mirror Stage (`NM0`, `NM1`, `PM0`):** The external control voltage $V_{ctrl}$ (`1.8 V`) drives the gate of bias input NMOS `NM0`, establishing a reference drain current $I_{ref}$ through diode-connected NMOS `NM1` and diode-connected PMOS `PM0`[cite: 22, 23]. This reference current is mirrored simultaneously across the upper PMOS current sources (`PM1`–`PM3`) and the lower NMOS current sinks (`NM2`–`NM4`)[cite: 23].
+- **Three-Stage Current-Starved Inverter Ring (`PM1`–`PM6`, `NM2`–`NM4`):** Three cascaded CMOS inverter stages (`PM4`/`NM2`, `PM5`/`NM3`, and `PM6`/`NM4`) are starved of unlimited supply current by the upper PMOS current sources and lower NMOS current sinks[cite: 22, 23].
+- **Closed-Loop Feedback & Oscillation Condition:** The output of the third inverter stage (`vosc`) feeds directly back to the input of the first stage[cite: 23]. Because an odd number of inverting stages ($N = 3$) provides $180^\circ$ of DC phase inversion plus an additional $180^\circ$ of frequency-dependent RC phase shift (totaling $360^\circ$ with loop gain $\ge 1$), the circuit satisfies the Barkhausen criterion and sustains continuous oscillation[cite: 23].
+- **Frequency Tuning Mechanism:** Varying $V_{ctrl}$ modulates the mirrored drain current $I_D$, directly controlling the slew rate and propagation delay $t_d$ of each inverter stage[cite: 23].
 
 ---
 
-## Design Specifications
+## Design Specifications & Component Breakdown
 
-The current-starved ring oscillator was designed using a 90 nm CMOS process in Cadence Virtuoso.
+The 3-stage current-starved ring oscillator was designed and verified using the Generic 90 nm PDK (`gpdk090`) in Cadence Virtuoso[cite: 22].
 
-| Parameter | Specification |
-|---|---|
-| Circuit type | Current-Starved Ring Oscillator |
-| Technology | 90 nm CMOS |
-| Number of delay stages | 3 (as documented in the technical report) |
-| Supply voltage (\(V_{DD}\)) | 1.8 V |
-| Control voltage (\(V_{ctrl}\)) | 1 V (nominal condition) |
-| Output node | `Vosc` |
-| Simulation tool | Cadence Virtuoso |
-| Simulator | Spectre |
-| Main analysis | Transient |
-| Physical verification | DRC and LVS |
+| Parameter | Specification | Remarks / Instance Details |
+| :--- | :--- | :--- |
+| **Circuit Topology** | 3-Stage Current-Starved Ring Oscillator | Odd-stage feedback loop ($N = 3$)[cite: 22, 23] |
+| **Technology Node** | 90 nm CMOS (`gpdk090`) | Standard 1 V thin-oxide devices[cite: 22] |
+| **Library / Cell Names** | `connectLib` / `csrosch` (`csro`) | `schematic`, `layout`, `av_extracted`, `maestro`[cite: 22] |
+| **Transistor Count** | 12 MOSFETs (7 PMOS + 5 NMOS) | Uniform sizing: $W = 120\text{ nm}$, $L = 100\text{ nm}$, $m = 1$[cite: 22, 23] |
+| **Supply Voltage ($V_{DD}$)** | $1.0\text{ V}$ | DC source `V0` (`vdc = 1 V`)[cite: 22, 23] |
+| **Control Voltage ($V_{ctrl}$)** | $1.8\text{ V}$ | DC source `V1` (`vdc = 1.8 V`)[cite: 22, 23] |
+| **Initial Condition** | `/vosc = 0 V` | Node set to break DC metastability and start oscillation[cite: 23, 25] |
+| **Output Node** | `vosc` | Rail-to-rail periodic output signal[cite: 22, 23] |
+| **Transient Stop Time** | $100\text{ ns}$ | `spectre` simulator (`moderate` accuracy)[cite: 24] |
+| **Oscillation Frequency ($f_{osc}$)** | **$13.2021\text{ GHz}$** ($\approx 13.2\text{ GHz}$) | Period $T \approx 75.75\text{ ps}$[cite: 23, 26, 27] |
+| **Average Power ($P_{avg}$)** | **$115.353\ \mu\text{W}$** ($\approx 115.4\ \mu\text{W}$) | Evaluated over transient window[cite: 23, 27] |
+| **Physical Verification** | DRC Clean & LVS Matched | 0 DRC errors, 0 LVS mismatches, QRC/RCX extracted[cite: 22, 23, 29, 30] |
 
+### Transistor-Level Component Allocation
 
-### Main Design Components
-
-1. CMOS inverter delay stages.
-2. PMOS current-source transistors.
-3. NMOS pull-down transistors.
-4. Supply voltage source.
-5. Control voltage source.
-6. Feedback connections.
-7. Oscillator output node.
+1. **Bias & Current-Mirror PMOS (`PM0`–`PM3`, 4 instances, `gpdk090_pmos1v`):** `PM0` acts as the diode-connected reference load, while `PM1`–`PM3` mirror $I_{ref}$ as upper current sources for the three inverter stages ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$)[cite: 22, 23, 24].
+2. **Inverter Pull-Up PMOS (`PM4`–`PM6`, 3 instances, `gpdk090_pmos1v`):** Switching pull-up transistors for Stages 1, 2, and 3 ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$)[cite: 22, 23, 24].
+3. **Bias & Current-Mirror NMOS (`NM0`–`NM1`, 2 instances, `gpdk090_nmos1v`):** `NM0` receives $V_{ctrl}$ at its gate and `NM1` acts as the diode-connected NMOS current-mirror reference ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$)[cite: 22, 23, 24].
+4. **Current-Starving Pull-Down NMOS (`NM2`–`NM4`, 3 instances, `gpdk090_nmos1v`):** Current-sink transistors limiting discharge current for Stages 1, 2, and 3 ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$)[cite: 22, 23, 24].
+5. **DC Sources & Pins:** `V0` ($V_{DD} = 1.0\text{ V}$), `V1` ($V_{ctrl} = 1.8\text{ V}$), supply pins `vdd`, `gnd`, and output pin `vosc`[cite: 22, 24].
 
 ---
 
 ## Mathematical Background
 
-### 1. Ring Oscillator Frequency
+### 1. Current-Starved Oscillation Frequency
 
-The oscillation frequency of an N-stage ring oscillator is approximately determined by:
+The oscillation frequency $f_{osc}$ of an $N$-stage Current-Starved Ring Oscillator is governed by the mirrored drain current $I_D$, the number of stages $N$, the supply voltage $V_{DD}$, and the total effective capacitance per stage $C_{tot}$[cite: 23]:
 
-\[
-f_{osc}=\frac{1}{2Nt_d}
-\]
+$$f_{osc} = \frac{I_D}{N \cdot C_{tot} \cdot V_{DD}}$$
 
-For a three-stage ring oscillator:
+In terms of single-stage propagation delay $t_d$, the oscillation frequency and period $T$ for $N = 3$ stages are:
 
-\[
-f_{osc}=\frac{1}{6t_d}
-\]
+$$T = 2 \cdot N \cdot t_d = 6 t_d \implies f_{osc} = \frac{1}{2 N t_d} = \frac{1}{6 t_d}$$
 
-The total oscillation period is:
+From the simulated oscillation frequency of $f_{osc} = 13.2021\text{ GHz}$[cite: 26]:
 
-\[
-T=2Nt_d
-\]
+$$T = \frac{1}{13.2021\text{ GHz}} \approx 75.75\text{ ps}$$
 
-Therefore, the propagation delay can be calculated as:
+$$t_d = \frac{T}{6} \approx 12.62\text{ ps per stage}$$
 
-\[
-t_d=\frac{T}{2N}
-\]
+### 2. Current-Starving Tuning Relationship
 
-### 2. Frequency Measurement
+The control voltage $V_{ctrl}$ sets the gate-to-source overdrive of `NM0`, regulating the mirrored current $I_D$[cite: 23]:
 
-The oscillation frequency is measured from the output waveform using:
+- **Lower $V_{ctrl}$** $\rightarrow$ Lower mirrored current $I_D$ $\rightarrow$ Slower node charging/discharging ($t_d \uparrow$) $\rightarrow$ **Lower $f_{osc}$**
+- **Higher $V_{ctrl}$** $\rightarrow$ Higher mirrored current $I_D$ $\rightarrow$ Faster node charging/discharging ($t_d \downarrow$) $\rightarrow$ **Higher $f_{osc}$**
 
-\[
-f_{osc}=\frac{1}{T}
-\]
+### 3. Average & Dynamic Power Consumption
 
-The time period is obtained by measuring the time difference between two successive equivalent waveform transitions:
+Total average power dissipation is computed from the time-domain supply power waveform `:pwr`[cite: 23, 27]:
 
-\[
-T=t_2-t_1
-\]
+$$P_{avg} = \frac{1}{T_{sim}} \int_{0}^{T_{sim}} P(t)\,dt = V_{DD} \times I_{avg}$$
 
-For the nominal simulation documented in the report:
+The dynamic switching component scales with total stage capacitance $C_{tot}$, supply voltage $V_{DD}$, and oscillation frequency $f_{osc}$:
 
-\[
-t_1=1.014\ ns
-\]
-
-\[
-t_2=1.138\ ns
-\]
-
-\[
-T=1.138-1.014=0.124\ ns
-\]
-
-Hence:
-
-\[
-f_{osc}=\frac{1}{0.124\ ns}
-\]
-
-\[
-\boxed{f_{osc}\approx 8.065\ GHz}
-\]
-
-The frequency measurement documented in the report is approximately 8.076 GHz.
-
-### 3. Current-Starving Principle
-
-The PMOS current-source transistor controls the current supplied to each inverter stage.
-
-The control voltage \(V_{ctrl}\) regulates the available charging current. This affects the time required to charge and discharge the internal capacitances.
-
-The relationship can be summarized as:
-
-- Lower available current → Higher propagation delay → Lower frequency.
-- Higher available current → Lower propagation delay → Higher frequency.
-
-Thus, the control voltage provides a mechanism for tuning the oscillator frequency.
-
-### 4. Power Consumption
-
-The average power consumption is evaluated from the supply voltage and average supply current:
-
-\[
-P_{avg}=V_{DD}\times I_{avg}
-\]
-
-For the dynamic switching component, power is also commonly related to:
-
-\[
-P_{dynamic}=\alpha C_L V_{DD}^{2}f_{osc}
-\]
-
-Where:
-
-- \(\alpha\) = Switching activity factor.
-- \(C_L\) = Effective load capacitance.
-- \(V_{DD}\) = Supply voltage.
-- \(f_{osc}\) = Oscillation frequency.
-
-The total simulated average power is measured using the supply-power waveform in Cadence Virtuoso.
+$$P_{dynamic} = N \cdot C_{tot} \cdot V_{DD}^2 \cdot f_{osc} = I_D \cdot V_{DD}$$
 
 ---
 
 ## Schematic Design
 
-The fundamental schematic of the CSRO was built in Cadence Virtuoso using 90 nm CMOS technology.
+The schematic (`connectLib/csrosch/schematic`) was captured in **Virtuoso Schematic Editor L** using 90 nm PDK devices (`gpdk090_pmos1v` and `gpdk090_nmos1v`), uniform sizing ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$), DC supply source `V0` ($1.0\text{ V}$), and control source `V1` ($1.8\text{ V}$)[cite: 22, 23, 24].
 
-The circuit consists of current-starved inverter stages connected in a feedback configuration. The PMOS current-source devices control the current supplied to the inverter stages.
-
-**Schematic of the Current-Starved Ring Oscillator:**
+**Schematic of the 3-Stage Current-Starved Ring Oscillator:**
 
 ![Schematic](Screenshot%20from%202026-11-03%2011-31-04.png)
 
 ---
 
-## Transient Simulation
+## Transient Simulation & Initial Condition Setup
 
-Transient analysis was performed using Cadence ADE Explorer and the Spectre simulator.
+Because a symmetric ring oscillator can settle at a metastable DC operating point during transient startup, an explicit initial condition of **`0 V`** was assigned to node **`/vosc`** in Virtuoso ADE Explorer before launching the `spectre` transient simulation (`0` to `100 ns`, `moderate` accuracy)[cite: 23, 24, 25].
 
-The transient response was observed at the oscillator output node (`Vosc`) to verify the generation of a periodic oscillating waveform.
+**Initial Condition Setup (`/vosc = 0 V`) in ADE Explorer:**
 
-The simulation confirms that the circuit produces sustained oscillations.
+![Initial Condition Setup](Screenshot%20from%202026-11-03%2011-44-36.png)
 
-**Initial transient response of the oscillator:**
+**Transient Response of Output Node `/vosc`:**
 
 ![Transient Simulation](Screenshot%20from%202026-11-03%2011-49-01.png)
 
----
-
-## Frequency Analysis
-
-The oscillation frequency was calculated from the output waveform using the ViVA XL Calculator.
-
-The frequency measurement expression used was:
-
-```skill
-frequency(VT("/vosc"))
-```
-
-The calculator determines the frequency from the time-domain output waveform.
-
-**Frequency analysis showing the oscillation frequency:**
-
-![Frequency Analysis](Screenshot%20from%202026-11-03%2011-54-35.png)
-
-An additional ADE Explorer screenshot shows an oscillation frequency of approximately **13.2 GHz** under a separate simulation configuration.
+The waveform confirms rapid startup and clean, sustained periodic oscillations between $\approx 0.07\text{ V}$ and $\approx 0.92\text{ V}$ under a $1.0\text{ V}$ supply[cite: 22, 25].
 
 ---
 
+## Frequency & Power Analysis (ADE Explorer & ViVA XL)
 
-## ADE Explorer and Calculator Measurements
+Scalar frequency and average power metrics were extracted directly in **Virtuoso ADE Explorer / Maestro** and **ViVA XL** using built-in SKILL calculator expressions[cite: 22, 23, 27].
 
-The Cadence ViVA XL Calculator was used to obtain the oscillator frequency from the output waveform.
+### Calculator Expressions
 
-### Frequency Measurement Expression
-
+**Oscillation Frequency:**
 ```skill
 frequency(VT("/vosc"))
+
 ```
 
-### Average Power Measurement Expression
+**Average Power Consumption:**
 
 ```skill
 average(getData(":pwr" ?result "tran"))
+
 ```
 
-The measurement process involves:
+### Simulation Measurements & Waveforms
 
-1. Selecting the output waveform.
-2. Identifying successive oscillation cycles.
-3. Calculating the time period.
-4. Determining the oscillation frequency.
-5. Measuring the average power over the transient simulation interval.
+| Metric | Expression | Measured Value |
+| --- | --- | --- |
+| **Oscillation Frequency** | `frequency(VT("/vosc"))` | **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$ rounded)
 
-### Additional ADE Simulation Observation
+ |
+| **Average Power** | `average(getData(":pwr" ?result "tran"))` | **$115.353\ \mu\text{W}$** ($115.4\ \mu\text{W}$ rounded)
 
-An additional ADE Explorer result visible in the supplied screenshots shows:
+ |
+| **ADE Design Variables** | `vdd = 1`, `vosc = 1.8` | $V_{DD} = 1.0\text{ V}$, $V_{ctrl} = 1.8\text{ V}$
 
-| Measurement | Observed value |
-|---|---:|
-| Oscillation frequency | Approximately 13.2 GHz |
-| Average power | 115.4 µW |
-| Frequency expression | `frequency(VT("/vosc"))` |
-| Power expression | `average(getData(":pwr" ?result "tran"))` |
+ |
 
-The screenshot also shows the ADE design variables:
+**Oscillation Frequency Measurement (`13.2021 GHz`) on `/vosc`:**
 
-- `vdd = 1`
-- `vosc = 1.8`
+**Transient Output Voltage (`/vosc`) and Instantaneous Power (`:pwr`) Waveforms:**
 
-These values belong to the displayed ADE configuration. They should be treated separately from the nominal 1.8 V supply and 1 V control-voltage results documented elsewhere in the report.
+**ADE Explorer Scalar Outputs (`13.2 GHz` and `115.4 µW`):**
 
 ---
 
+## Physical Layout
 
-## Layout
+The physical layout (`csro/csro/layout`) was implemented in **Virtuoso Layout Suite XL** adhering to 90 nm CMOS (`gpdk090`) design rules:
 
-After completing the schematic-level design and simulations, the circuit was implemented in Cadence Virtuoso Layout Suite XL.
+* **Well & Substrate Engineering:** All 7 PMOS devices are grouped inside a shared `Nwell` connected to `vdd!` via N-tap contacts, while all 5 NMOS devices reside in the P-substrate tied to `gnd!` via P-tap contacts.
 
-The physical layout was constructed using the 90 nm CMOS technology design rules.
 
-The layout implementation includes:
+* **Multi-Layer Interconnect Routing:** Gate connections use `Poly`, local device routing uses `Metal1`, and cross-stage feedback (`Vosc`) and bias routing (`Vctrl`) utilize `Metal1`/`Metal2` with `Via1` transitions.
 
-- PMOS and NMOS transistor structures.
-- Supply and ground routing.
-- Control-voltage connections.
-- Internal inverter-stage connections.
-- Feedback routing.
-- Output routing for the oscillator signal.
-- Metal interconnections and contact structures.
 
-**Physical layout of the Current-Starved Ring Oscillator:**
 
-![Layout](Screenshot%20from%202026-11-06%2013-56-32.png)
+**Physical Layout of the 3-Stage Current-Starved Ring Oscillator:**
 
 ---
 
 ## Design Rule Check (DRC)
 
-Design Rule Check (DRC) was performed to verify that the physical layout satisfies the fabrication design rules.
-
-The supplied DRC screenshot confirms:
+Physical DRC verification was executed using **Assura DRC** against the 90 nm PDK rule deck to validate minimum width, spacing, enclosure, and density constraints:
 
 ```text
 No DRC errors found.
 Total DRC violations: 0
+
 ```
 
-This indicates that the layout passed the reported design-rule checks.
+**Assura DRC Verification Result:**
 
-**DRC verification result:**
+* Checked all active (`Oxide`), `Nwell`, `Poly`, implant (`Pimp`/`Nimp`), contact (`Cont`), `Metal1`, `Via1`, and `Metal2` layers against `gpdk090` design rules.
 
-![DRC Clean](Screenshot%20from%202026-11-10%2016-25-21.png)
 
-<details>
-<summary>DRC Verification Details</summary>
+* Zero spacing, width, overlap, or floating-well violations (`No DRC errors found`).
 
-- Physical layout checked against the 90 nm CMOS design rules.
-- No reported DRC errors.
-- Total reported DRC violations: 0.
 
-</details>
 
 ---
 
-## Layout Versus Schematic (LVS)
+## Layout Versus Schematic (LVS) & RCX Extraction
 
-Layout Versus Schematic (LVS) verification was performed to verify the correspondence between the physical layout and the original schematic.
-
-The supplied LVS run summary reports:
+**Assura LVS** was run to compare the extracted layout netlist against the golden schematic (`csrosch`):
 
 ```text
-0 cells have 0 Net mismatches
-0 cells have 0 Device mismatches
-0 cells have 0 Pin mismatches
-0 cells have 0 Parameter mismatches
+*** Schematic and Layout Match
+
+Extraction Information:
+  0 cells have 0 mal-formed device problems
+  0 cells have 0 label short problems
+  0 cells have 0 label open problems
+
+Comparison Information:
+  0 cells have 0 Net mismatches
+  0 cells have 0 Device mismatches
+  0 cells have 0 Pin mismatches
+  0 cells have 0 Parameter mismatches
 
 Total DRC violations: 0
+
 ```
 
-The reported comparison results confirm that the extracted layout connectivity and device information match the schematic.
+Following LVS sign-off, **Assura QRC (RCX)** was executed to generate the `av_extracted` view containing coupled parasitic resistances and capacitances for post-layout verification.
 
-**LVS run summary:**
+**Assura LVS Run Summary:**
 
-![LVS Summary](Screenshot%20from%202026-11-10%2016-25-47.jpg)
-
-**Final LVS verification:**
-
-![LVS Match](Screenshot%20from%202026-11-10%2016-25-52.png)
+**Assura LVS Debug Result (`Schematic and Layout Match`):**
 
 ---
 
+## Step-by-Step Implementation Workflow
 
+### Phase 1: Schematic Design & Pre-Layout Simulation
+
+1. Launch Cadence Virtuoso IC 6.1.8 and create schematic cell `csrosch` inside library `connectLib` / `csro`.
+
+
+2. Instantiate **7 PMOS (`pmos1v`)** and **5 NMOS (`nmos1v`)** transistors from `gpdk090` with $W = 120\text{ nm}$, $L = 100\text{ nm}$, and $m = 1$.
+
+
+3. Wire the current-mirror bias network (`NM0`, `NM1`, `PM0`) to the three current-starved inverter stages (`PM1`–`PM6`, `NM2`–`NM4`), feeding output `vosc` back to the first inverter input.
+
+
+4. Connect DC sources `V0 = 1 V` ($V_{DD}$) and `V1 = 1.8 V` ($V_{ctrl}$), place pins `vdd`, `gnd`, and `vosc`, and run **Check and Save**.
+
+
+5. Open **ADE Explorer / Maestro**, choose `spectre`, apply an initial condition `/vosc = 0 V`, and run a `100 ns` transient analysis (`moderate` accuracy).
+
+
+6. Evaluate `frequency(VT("/vosc"))` ($13.2021\text{ GHz}$) and `average(getData(":pwr" ?result "tran"))` ($115.353\ \mu\text{W}$) in ViVA XL.
+
+
+
+### Phase 2: Physical Layout, DRC, LVS & QRC Extraction
+
+1. Open **Virtuoso Layout Suite XL** from the schematic and generate all 12 MOSFET instances and I/O pins (`vdd!`, `gnd!`, `Vctrl`, `Vosc`).
+
+
+2. Place PMOS devices in a shared `Nwell` with N-taps and NMOS devices in the P-substrate with P-taps.
+
+
+3. Complete interconnections using `Poly`, `Metal1`, and `Metal2`.
+
+
+4. Run **Assura $\rightarrow$ Run DRC** and verify `No DRC errors found`.
+
+
+5. Run **Assura $\rightarrow$ Run LVS** and verify `Schematic and Layout Match` with zero mismatches.
+
+
+6. Run **Assura $\rightarrow$ Run QRC (RCX)** to produce the `av_extracted` parasitic view.
+
+
+
+---
 
 ## Overall Performance Summary
 
-The following table summarizes the major performance results obtained during the design and evaluation of the current-starved ring oscillator.
+| Verification / Analysis Stage | Metric / Check | Result |
+| --- | --- | --- |
+| **Transient Simulation** | Oscillation Stability (`0–100 ns`) | Sustained periodic oscillation (`0.07 V` – `0.92 V`)
 
-| Analysis | Main Result |
-|---|---|
-| Transient analysis | Sustained periodic oscillation |
-| Nominal average power | Approximately 260 µW |
-| Additional ADE screenshot power | 115.4 µW |
-| DRC | 0 reported violations |
-| LVS | 0 reported mismatches |
+ |
+| **Frequency Analysis** | Oscillation Frequency ($f_{osc}$) | **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$)
 
+ |
+| **Power Analysis** | Average Power Dissipation ($P_{avg}$) | **$115.353\ \mu\text{W}$** ($115.4\ \mu\text{W}$)
 
+ |
+| **Physical DRC** | Assura Design Rule Check | **Clean (0 DRC violations)**
+
+ |
+| **Physical LVS** | Assura Layout Versus Schematic | **Matched (0 net/device/pin/parameter mismatches)**
+
+ |
+| **Parasitic Extraction** | Assura QRC / RCX | **`av_extracted` view generated**
+
+ |
 
 ---
 
 ## Applications of Current-Starved Ring Oscillators
 
-Current-starved ring oscillators are useful in integrated circuit applications that require controllable frequency generation.
-
-Some potential applications include:
-
-- Voltage-Controlled Oscillators (VCOs).
-- Phase-Locked Loops (PLLs).
-- Clock generation circuits.
-- On-chip timing references.
-- Frequency synthesizers.
-- Clock recovery circuits.
-- Integrated communication systems.
-- Low-power timing and control circuits.
+* **Voltage-Controlled Oscillators (VCOs)** in RF and mixed-signal front-ends
+* **Phase-Locked Loops (PLLs)** and Delay-Locked Loops (DLLs)
+* **On-Chip Clock Generation** and frequency synthesizers
+* **Clock and Data Recovery (CDR)** circuits in high-speed serial links
+* **Low-Power Integrated Timing References** and sensor readout interfaces
 
 ---
 
 ## Tools and Technologies
 
-The following tools and technologies were used in the design, simulation, and verification process.
-
 | Tool / Technology | Purpose |
-|---|---|
-| Cadence Virtuoso 6.1.8 | Schematic and layout design |
-| ADE Explorer | Simulation setup and analysis |
-| ADE Assembler | Parametric and statistical analysis |
-| Spectre | Circuit simulation |
-| ViVA XL | Waveform visualization |
-| ViVA XL Calculator | Frequency and power measurements |
-| 90 nm CMOS PDK | Transistor models and physical design rules |
-| DRC | Design-rule verification |
-| LVS | Layout-to-schematic verification |
-| GitHub | Project documentation and version control |
+| --- | --- |
+| **Cadence Virtuoso IC 6.1.8** | Custom IC schematic capture and physical layout environment
+
+ |
+| **Virtuoso Schematic Editor L** | Transistor-level schematic design (`csrosch`)
+
+ |
+| **ADE Explorer / Maestro** | Testbench variable management, initial conditions, and simulation control
+
+ |
+| **Spectre Simulator** | High-accuracy transient circuit simulation (`0–100 ns`)
+
+ |
+| **ViVA XL & Calculator** | Waveform visualization, scalar frequency, and average power extraction
+
+ |
+| **Virtuoso Layout Suite XL** | Connectivity-driven physical layout implementation
+
+ |
+| **Assura DRC / LVS / QRC** | Physical design rule verification, schematic-to-layout matching, and RCX extraction
+
+ |
+| **Generic 90 nm PDK (`gpdk090`)** | 90 nm CMOS device models (`pmos1v`, `nmos1v`) and physical rule decks
+
+ |
 
 ---
 
 ## Project Structure
 
-A suggested organization for the GitHub repository is:
-
 ```text
-Current-Starved-Ring-Oscillator/
+Current_Starved_Ring_Oscillator/
 │
-├── README.md
+├── README.md                                  # Complete project documentation
+├── 226EC1002 DIC LAB PROJECT REPORT.pdf       # Formal IIITDM Kurnool lab project report
 │
-├── Schematic/
-│   └── CSRO_Schematic.png
+├── CSRO_PVG/                                  # Cadence Virtuoso 90nm library & verification files
+│   ├── csro/                                  # Library directory (schematic, layout, av_extracted, maestro)
+│   ├── csro.drc / csro.lvsdb / csro.erc       # Assura DRC, LVS, and ERC verification databases
+│   └── cds.lib                                # Cadence library definitions
 │
-├── Simulation/
-│   ├── Transient_Response.png
-│   ├── Frequency_Analysis.png
-│   ├── Power_Analysis.png
-│   └── ADE_Results.png
-│
-├── Layout/
-│   ├── CSRO_Layout.png
-│   └── DRC_Result.png
-│
-├── Verification/
-│   ├── LVS_Summary.png
-│   └── LVS_Match.png
-```
+└── Screenshots/                               # Simulation & physical verification captures
+    ├── Screenshot from 2026-11-03 11-31-04.png
+    ├── Screenshot from 2026-11-03 11-44-36.png
+    ├── Screenshot from 2026-11-03 11-49-01.png
+    ├── Screenshot from 2026-11-03 11-54-35.png
+    ├── Screenshot from 2026-11-03 11-59-22.jpg
+    ├── Screenshot from 2026-11-03 12-09-59.png
+    ├── Screenshot from 2026-11-06 13-56-32.png
+    ├── Screenshot from 2026-11-10 16-25-21.png
+    ├── Screenshot from 2026-11-10 16-25-47.jpg
+    └── Screenshot from 2026-11-10 16-25-52.png
 
-**Note:** The folder structure above is a suggested GitHub organization. The files should be placed in the corresponding folders before using these paths in Markdown image links.
+```
 
 ---
 
 ## Conclusion
 
-The Current-Starved Ring Oscillator was designed and evaluated using Cadence Virtuoso and a 90 nm CMOS technology.
+A 3-stage Current-Starved Ring Oscillator (CSRO) was successfully designed, simulated, and physically verified at the 90 nm CMOS technology node (`gpdk090`) in Cadence Virtuoso. Pre-layout transient simulation with an initial condition of `/vosc = 0 V` confirmed stable, sustained oscillation at **$13.2021\text{ GHz}$** with an average power dissipation of **$115.353\ \mu\text{W}$** for $V_{DD} = 1.0\text{ V}$ and $V_{ctrl} = 1.8\text{ V}$. The physical layout passed **Assura DRC** (`0` violations) and **Assura LVS** (`Schematic and Layout Match`) cleanly, followed by **QRC/RCX** parasitic extraction (`av_extracted`).
 
-The simulation results demonstrate sustained oscillation, controllable frequency operation, and the expected relationship between control voltage, propagation delay, and power consumption.
+---
 
-The physical layout was verified using DRC and LVS, with zero reported DRC violations and zero reported schematic-to-layout mismatches.
+## Author & Acknowledgment
 
-Post-layout simulation further confirmed that the oscillator maintains its intended functionality after parasitic extraction.
-
-Overall, this project demonstrates the complete design flow of a Current-Starved Ring Oscillator, covering:
-
-- Circuit design and schematic implementation.
-- Transient simulation.
-- Frequency and power analysis.
-- Parametric analysis.
-- DRC and LVS verification.
-- Post-layout simulation.
-
-Author Information:-
-Author: Thanakanti Praneeth Institution: IIITDM Kurnool, Andhra Pradesh
-Roll Number: 226EC1002	Faculty: Dr. Rangababu P
-Specialization: VLSI & Microelectronics	
-Department: Electronics & Communication Engineering
+* **Author:** Thanakanti Praneeth
 
 
-A Great Thankyou to Dr.P.RangaBabu (Associate Proffesor) for his Guidance and Mentoring.
+* **Roll Number:** 226EC1002
+
+
+* **Programme:** M.Tech in VLSI & Microelectronics
+
+
+* **Department:** Electronics and Communication Engineering
+
+
+* **Institution:** Indian Institute of Information Technology, Design and Manufacturing (IIITDM), Kurnool, Andhra Pradesh
+
+
+* **Course:** Digital IC Design Laboratory
+
+
+
+> **Acknowledgment:** Sincere thanks to **Dr. P. Ranga Babu** (Associate Professor, Department of Electronics and Communication Engineering, IIITDM Kurnool) for his valuable guidance, technical mentorship, and support throughout this Digital IC Laboratory project.
+> 
+> 
+
+```
+
+```
