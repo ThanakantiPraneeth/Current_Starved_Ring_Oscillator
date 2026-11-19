@@ -1,17 +1,3 @@
-The **Commit changes...** button in the top-right corner of your GitHub editor is currently disabled because no edits have been saved into the text box yet (it still contains your old `README.md` text ending at line 472).
-
-Follow these steps to replace it cleanly in one go:
-
-1. **Click inside the black code editor area** (anywhere around lines 447–472).
-
-
-2. **Select everything** by pressing **`Ctrl + A`** (or **`Cmd + A`** on Mac), then press **`Backspace`** or **`Delete`** so the file is completely blank (only line `1` remains).
-3. **Copy the code block below** using the **Copy** icon in the top-right corner of the box, click back inside line `1` of the GitHub editor, and press **`Ctrl + V`** (or **`Cmd + V`**).
-4. Once pasted, the **Commit changes...** button in the top-right corner will turn bright green/blue. Click **Commit changes...** and confirm in the pop-up dialog.
-
-
-
-markdown
 # Current-Starved Ring Oscillator (CSRO)
 
 Designing and simulating a **3-Stage Current-Starved Ring Oscillator (CSRO)**—often used as a Voltage-Controlled Oscillator (VCO)—in Cadence Virtuoso involves building a 12-transistor current-mirror biased inverter chain and running transient, frequency, power, and physical verification flows[cite: 22, 23, 27, 29].
