@@ -207,6 +207,8 @@ After completing the schematic-level design and simulations, the circuit (`csro/
 
 **Physical layout of the Current-Starved Ring Oscillator:**
 
+![Layout](Screenshot%20from%202026-11-06%2013-56-32.png)
+
 ---
 
 ## Design Rule Check (DRC)
@@ -222,6 +224,7 @@ Total DRC violations: 0
 ```
 
 **DRC verification result:**
+![DRC](Screenshot%20from%202026-11-10%2016-25-21.png)
 
 * Physical layout checked against the 90 nm CMOS (`gpdk090`) design rules across `Nwell`, `Oxide`, `Poly`, `Pimp`/`Nimp`, `Cont`, `Metal1`, `Via1`, and `Metal2` layers.
 * No reported DRC errors (`No DRC errors found`).
@@ -230,6 +233,7 @@ Total DRC violations: 0
 ---
 
 ## Layout Versus Schematic (LVS)
+![LVS](Screenshot%20from%202026-11-10%2016-25-27.png)
 
 Layout Versus Schematic (LVS) verification was performed using **Assura LVS** to verify exact correspondence between the physical layout and the original schematic (`csrosch`).
 
@@ -258,6 +262,7 @@ Following LVS verification, **Assura QRC (RCX)** was run to generate the `av_ext
 **LVS run summary:**
 
 **Final LVS verification:**
+![LAYOUT MATCH](Screenshot%20from%202026-11-10%2016-25-52.png)
 
 ---
 
