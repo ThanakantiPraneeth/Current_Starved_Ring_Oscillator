@@ -20,11 +20,12 @@ This project presents the complete design, schematic implementation, initial-con
 10. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
 11. [Step-by-Step Implementation Workflow](#step-by-step-implementation-workflow)
 12. [Overall Performance Summary](#overall-performance-summary)
-13. [Applications of Current-Starved Ring Oscillators](#applications-of-current-starved-ring-oscillators)
-14. [Tools and Technologies](#tools-and-technologies)
-15. [Project Structure](#project-structure)
-16. [Conclusion](#conclusion)
-17. [Author & Acknowledgment](#author--acknowledgment)
+13. [Power-Delay Product (PDP) and Energy-Delay Product (EDP)](#power-delay-product-pdp-and-energy-delay-product-edp)
+14. [Applications of Current-Starved Ring Oscillators](#applications-of-current-starved-ring-oscillators)
+15. [Tools and Technologies](#tools-and-technologies)
+16. [Project Structure](#project-structure)
+17. [Conclusion](#conclusion)
+18. [Author & Acknowledgment](#author--acknowledgment)
 
 ---
 
@@ -120,6 +121,16 @@ $$P_{dynamic} = \alpha C_L V_{DD}^{2} f_{osc}$$
 
 where $\alpha$ is the switching activity factor, $C_L$ is the effective load capacitance, $V_{DD}$ is the supply voltage, and $f_{osc}$ is the oscillation frequency.
 
+### 5. Delay, Power-Delay Product and Energy-Delay Product
+
+The propagation delay per stage, $t_{pd}$, is the average of the low-to-high and high-to-low propagation delays:
+
+$$t_{pd} = \frac{t_{PLH} + t_{PHL}}{2} = \frac{1}{2 N f_{osc}}$$
+
+The Power-Delay Product (PDP) is the energy consumed per stage transition, and the Energy-Delay Product (EDP) weighs that energy against speed:
+
+$$PDP = P_{avg} \times t_{pd} \qquad\qquad EDP = PDP \times t_{pd} = P_{avg} \times t_{pd}^{2}$$
+
 ---
 
 ## Schematic Design
@@ -156,7 +167,6 @@ The frequency measurement expression used was:
 
 ```skill
 frequency(VT("/vosc"))
-
 ```
 
 The calculator determines an oscillation frequency of **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$ rounded) from the time-domain output waveform.
@@ -173,14 +183,12 @@ The Cadence ViVA XL Calculator and ADE Explorer / Maestro were used to extract s
 
 ```skill
 frequency(VT("/vosc"))
-
 ```
 
 ### Average Power Measurement Expression
 
 ```skill
 average(getData(":pwr" ?result "tran"))
-
 ```
 
 ### ADE Simulation Measurements
@@ -220,7 +228,6 @@ The supplied DRC screenshot confirms:
 ```text
 No DRC errors found.
 Total DRC violations: 0
-
 ```
 
 **DRC verification result:**
@@ -254,7 +261,6 @@ Comparison Information:
   0 cells have 0 Parameter mismatches
 
 Total DRC violations: 0
-
 ```
 
 Following LVS verification, **Assura QRC (RCX)** was run to generate the `av_extracted` parasitic netlist view.
@@ -294,10 +300,58 @@ Following LVS verification, **Assura QRC (RCX)** was run to generate the `av_ext
 | --- | --- |
 | **Transient analysis (`0–100 ns`)** | Sustained periodic oscillation (`0.07 V` – `0.92 V`) |
 | **Oscillation frequency ($f_{osc}$)** | **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$) |
+| **Propagation delay per stage ($t_{pd}$)** | **$12.62\text{ ps}$** ($= 1/(6 f_{osc})$) |
 | **Average power ($P_{avg}$)** | **$115.353\ \mu\text{W}$** ($115.4\ \mu\text{W}$) |
+| **Power-Delay Product (PDP)** | **$1.456\text{ fJ}$** |
+| **Energy-Delay Product (EDP)** | **$1.84 \times 10^{-26}\text{ J·s}$** |
 | **DRC (Assura)** | **0 reported violations (`No DRC errors found`)** |
 | **LVS (Assura)** | **0 reported mismatches (`Schematic and Layout Match`)** |
 | **Parasitic extraction (QRC/RCX)** | **`av_extracted` view generated** |
+
+---
+
+## Power-Delay Product (PDP) and Energy-Delay Product (EDP)
+
+The PDP and EDP quantify the energy efficiency and speed trade-off of the oscillator. They are computed from the pre-layout simulation results ($f_{osc} = 13.2021\text{ GHz}$, $P_{avg} = 115.353\ \mu\text{W}$).
+
+### Calculation
+
+**Oscillation period:**
+
+$$T = \frac{1}{f_{osc}} = \frac{1}{13.2021\text{ GHz}} \approx 75.75\text{ ps}$$
+
+**Propagation delay per stage** ($N = 3$):
+
+$$t_{pd} = \frac{T}{2N} = \frac{1}{6 \times 13.2021\text{ GHz}} \approx 12.62\text{ ps}$$
+
+**Power-Delay Product:**
+
+$$PDP = P_{avg} \times t_{pd} = 115.353\ \mu\text{W} \times 12.62\text{ ps} \approx 1.456\text{ fJ}$$
+
+**Energy-Delay Product:**
+
+$$EDP = PDP \times t_{pd} = 1.456\text{ fJ} \times 12.62\text{ ps} \approx 1.84 \times 10^{-26}\text{ J·s}$$
+
+**Energy per oscillation cycle** (cross-check, equal to $2N \times PDP$):
+
+$$E_{cycle} = \frac{P_{avg}}{f_{osc}} = \frac{115.353\ \mu\text{W}}{13.2021\text{ GHz}} \approx 8.74\text{ fJ}$$
+
+### Pre-Layout vs Post-Layout (RCX) Comparison
+
+| Metric | Formula | Pre-Layout | Post-Layout (RCX) |
+| :--- | :--- | :--- | :--- |
+| **Oscillation frequency ($f_{osc}$)** | `frequency(VT("/vosc"))` | $13.2021\text{ GHz}$ | _TBD_ |
+| **Propagation delay ($t_{pd}$)** | $1/(2N f_{osc})$ | $12.62\text{ ps}$ | _TBD_ |
+| **Average power ($P_{avg}$)** | `average(getData(":pwr" ?result "tran"))` | $115.353\ \mu\text{W}$ | _TBD_ |
+| **PDP** | $P_{avg} \times t_{pd}$ | $1.456\text{ fJ}$ | _TBD_ |
+| **EDP** | $PDP \times t_{pd}$ | $1.84 \times 10^{-26}\text{ J·s}$ | _TBD_ |
+| **Energy per cycle** | $P_{avg}/f_{osc}$ | $8.74\text{ fJ}$ | _TBD_ |
+
+### Notes
+
+- $t_{pd}$ here is derived from the oscillation frequency and represents the average of $t_{PLH}$ and $t_{PHL}$. It can be cross-checked in ADE by measuring $t_{PLH}$ and $t_{PHL}$ across one stage at the 50% crossing points and taking their mean.
+- $P_{avg}$ is the total circuit power and includes the static bias branch (`PM0`, `NM0`, `NM1`) as well as switching power.
+- After RC extraction, added parasitic capacitance is expected to lower $f_{osc}$ and raise $t_{pd}$. Because EDP contains $t_{pd}^{2}$, it is expected to degrade faster than PDP.
 
 ---
 
@@ -352,14 +406,13 @@ Current_Starved_Ring_Oscillator/
     ├── Screenshot from 2026-11-10 16-25-21.png
     ├── Screenshot from 2026-11-10 16-25-47.jpg
     └── Screenshot from 2026-11-10 16-25-52.png
-
 ```
 
 ---
 
 ## Conclusion
 
-A 3-stage Current-Starved Ring Oscillator was successfully designed, simulated, and physically verified at the 90 nm CMOS technology node (`gpdk090`) in Cadence Virtuoso. Pre-layout transient analysis with an initial condition of `/vosc = 0 V` confirmed stable oscillation at **$13.2021\text{ GHz}$** with an average power dissipation of **$115.353\ \mu\text{W}$** for $V_{DD} = 1.0\text{ V}$ and $V_{ctrl} = 1.8\text{ V}$, while the physical layout passed Assura DRC (`0` violations) and Assura LVS (`Schematic and Layout Match`) cleanly prior to QRC/RCX parasitic extraction.
+A 3-stage Current-Starved Ring Oscillator was successfully designed, simulated, and physically verified at the 90 nm CMOS technology node (`gpdk090`) in Cadence Virtuoso. Pre-layout transient analysis with an initial condition of `/vosc = 0 V` confirmed stable oscillation at **$13.2021\text{ GHz}$** with an average power dissipation of **$115.353\ \mu\text{W}$** for $V_{DD} = 1.0\text{ V}$ and $V_{ctrl} = 1.8\text{ V}$. This corresponds to a propagation delay of about $12.62\text{ ps}$ per stage, a power-delay product of about $1.456\text{ fJ}$, and an energy-delay product of about $1.84 \times 10^{-26}\text{ J·s}$. The physical layout passed Assura DRC (`0` violations) and Assura LVS (`Schematic and Layout Match`) cleanly prior to QRC/RCX parasitic extraction.
 
 ---
 
@@ -373,7 +426,3 @@ A 3-stage Current-Starved Ring Oscillator was successfully designed, simulated, 
 * **Course:** Digital IC Design Laboratory
 
 > **Acknowledgment:** Sincere thanks to **Dr. P. Ranga Babu** (Associate Professor, Department of Electronics and Communication Engineering, IIITDM Kurnool) for his valuable guidance, technical mentorship, and support throughout this Digital IC Laboratory project.
-
-```
-
-```
