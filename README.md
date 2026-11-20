@@ -270,9 +270,14 @@ Following LVS verification, **Assura QRC (RCX)** was run to generate the `av_ext
 **Final LVS verification:**
 ![LAYOUT MATCH](Screenshot%20from%202026-11-10%2016-25-52.png)
 
+
 ---
 ## Schematic and AV Extraction Match
-![Schematic and AV Extraction Match](Screenshot2026-11-20%203559.png)
+![Schematic and AV Extraction Match](Screenshot%202026-11-20%20203559.png)
+
+## RC Extraction - Parasitic Extraction
+![RC Extraction](Screenshot%202026-11-20%20202805.png)
+![RC Extraction](Screenshot%202026-11-20%20202917.png)
 
 ## Step-by-Step Implementation Workflow
 
