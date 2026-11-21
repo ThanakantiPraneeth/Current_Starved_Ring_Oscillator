@@ -308,6 +308,10 @@ To measure the effect of the layout parasitics, the extracted view was simulated
 1. A symbol (`csro/csro/symbol`) with pins `Vctrl` and `Vosc` was generated from the `csro` cell. The supply and ground are the global nets `vdd!` and `gnd!`.
 2. A testbench `csro/csro_tb_new_o/schematic` was built with the `csro` symbol, a DC source `V1` (`vdc = 1.8`) on the `vdd` rail, a DC source `V0` (`vdc = 1`) on `Vctrl`, ground, and the `Vosc` output pin. These are the same voltages that are wired in the pre-layout schematic.
 
+**Symbol of the `csro` cell (pins `Vctrl` and `Vosc`):**
+
+![CSRO Symbol](Screenshot%202026-11-21%20092850.png)
+
 **Post-layout testbench (`csro/csro_tb_new_o`):**
 
 ![Post-Layout Testbench](Screenshot%202026-11-21%20092910.png)
@@ -345,8 +349,10 @@ The `:pwr` expression used before layout is not available from the testbench hie
 | **Average supply current** | `average(-IT("/V1/PLUS"))` |
 | **Average power** | `average(-IT("/V1/PLUS") * 1.8)` |
 | **Propagation delay** $t_{pd}$ | `1 / (6 * frequency(VT("/Vosc")))` |
-| **PDP** | `average(-IT("/V1/PLUS") * 1.8) / (6 * frequency(VT("/Vosc")))` |
-| **EDP** | `average(-IT("/V1/PLUS") * 1.8) / ((6 * frequency(VT("/Vosc"))) ** 2)` |
+| **PDP (per volt of supply)** | `average(-IT("/V1/PLUS") * 1) / (6 * frequency(VT("/Vosc")))` |
+| **EDP (per volt of supply)** | `average(-IT("/V1/PLUS") * 1) / ((6 * frequency(VT("/Vosc"))) ** 2)` |
+
+In the Calculator screenshots below, the supply-voltage factor in the expressions was entered as `1`, so the displayed current-based values are per volt of supply. Multiplying the PDP and EDP values by the actual supply voltage $V_1 = 1.8\text{ V}$ gives the final results listed in the Post-Layout Results table.
 
 **Post-layout frequency and average supply current of `V1` (`5.487 GHz` and `144.4 µA`):**
 
@@ -356,11 +362,11 @@ The `:pwr` expression used before layout is not available from the testbench hie
 
 ![Post-Layout tpd](Screenshot%202026-11-21%20093002.png)
 
-**Post-layout PDP (`7.894 fJ` at $1.8\text{ V}$):**
+**Post-layout PDP (Calculator output `4.385 fJ` with the voltage factor set to 1; $\times\,1.8\text{ V}$ gives `7.894 fJ`):**
 
 ![Post-Layout PDP](Screenshot%202026-11-21%20093031.png)
 
-**Post-layout EDP (`2.40e-25 J·s` at $1.8\text{ V}$):**
+**Post-layout EDP (Calculator output `133.2e-27 J·s` with the voltage factor set to 1; $\times\,1.8\text{ V}$ gives `2.40e-25 J·s`):**
 
 ![Post-Layout EDP](Screenshot%202026-11-21%20093058.png)
 
@@ -543,6 +549,7 @@ Current_Starved_Ring_Oscillator/
     ├── Screenshot 2026-11-20 203559.png
     ├── Screenshot 2026-11-20 202940.png
     ├── Screenshot 2026-11-20 202917.png
+    ├── Screenshot 2026-11-21 092850.png
     ├── Screenshot 2026-11-21 092910.png
     ├── Screenshot 2026-11-21 092935.png
     ├── Screenshot 2026-11-21 093002.png
