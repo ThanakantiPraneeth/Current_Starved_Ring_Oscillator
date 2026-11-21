@@ -22,7 +22,7 @@ This project presents the complete design, schematic implementation, initial-con
 12. [Post-Layout (RCX) Simulation](#post-layout-rcx-simulation)
 13. [Step-by-Step Implementation Workflow](#step-by-step-implementation-workflow)
 14. [Overall Performance Summary](#overall-performance-summary)
-15. [Power-Delay Product (PDP) and Energy-Delay Product (EDP)](#power-delay-product-pdp-and-energy-delay-product-edp)
+15. [Power-Delay Product (PDP), Energy-Delay Product (EDP) and Effective Capacitance](#power-delay-product-pdp-energy-delay-product-edp-and-effective-capacitance)
 16. [Applications of Current-Starved Ring Oscillators](#applications-of-current-starved-ring-oscillators)
 17. [Tools and Technologies](#tools-and-technologies)
 18. [Project Structure](#project-structure)
@@ -135,6 +135,14 @@ The Power-Delay Product (PDP) is the energy consumed per stage transition, and t
 
 $$PDP = P_{avg} \times t_{pd} \qquad\qquad EDP = PDP \times t_{pd} = P_{avg} \times t_{pd}^{2}$$
 
+### 6. Effective Switched (Short-Circuit) Capacitance
+
+The total dynamic power including the short-circuit component is written in the same form as the dynamic power equation, with an equivalent lumped capacitance $C_{sc}$:
+
+$$P_{dynamic\text{-}sc} = \alpha \, C_{sc} \, f_{osc} \, V_{DD}^{2} \quad\Longrightarrow\quad C_{sc} = \frac{P_{dynamic\text{-}sc}}{\alpha \, f_{osc} \, V_{DD}^{2}}$$
+
+For the ring oscillator, every node completes one full charge/discharge cycle per oscillation period, so the activity factor is taken as $\alpha = 1$. Because the measured supply power also contains the short-circuit current of the inverters and the static bias branch, $C_{sc}$ is an effective lumped capacitance, not a purely physical one.
+
 ---
 
 ## Schematic Design
@@ -207,7 +215,7 @@ average(getData(":pwr" ?result "tran"))
 
 **Transient Output Voltage (`/vosc`) and Instantaneous Power (`:pwr`) Waveforms:**
 
-![Transient and Power Waveforms](Screenshot%20from%202026-11-03%2011-59-22.jpg)
+![Transient and Power Waveforms](Screenshot%20from%202026-11-03%2011-59-22.png)
 
 **ADE Explorer Scalar Outputs (`13.2 GHz` and `115.4 µW`):**
 
@@ -370,6 +378,10 @@ In the Calculator screenshots below, the supply-voltage factor in the expression
 
 ![Post-Layout EDP](Screenshot%202026-11-21%20091526.png)
 
+**Post-layout Psc (Short Circuit Power of the Circuit is `173.2e-6 W`):**
+
+![Post-Layout Psc](Screenshot%202026-11-21%20124304.png)
+
 ### Post-Layout Results
 
 | Parameter | Value |
@@ -377,11 +389,56 @@ In the Calculator screenshots below, the supply-voltage factor in the expression
 | **Oscillation frequency ($f_{osc}$)** | **$5.487\text{ GHz}$** |
 | **Period ($T$)** | $182.25\text{ ps}$ |
 | **Propagation delay ($t_{pd}$)** | **$30.37\text{ ps}$** |
+| **High-to-low delay ($t_{PHL}$, estimated)** | $29.4\text{ ps}$ |
+| **Low-to-high delay ($t_{PLH}$, estimated)** | $31.4\text{ ps}$ |
 | **Average supply current ($I_{avg}$)** | $144.4\ \mu\text{A}$ |
 | **Average power ($P_{avg} = 1.8\text{ V} \times I_{avg}$)** | **$259.9\ \mu\text{W}$** |
 | **Power-Delay Product (PDP)** | **$7.894\text{ fJ}$** |
 | **Energy-Delay Product (EDP)** | **$2.40 \times 10^{-25}\text{ J·s}$** |
 | **Energy per cycle ($P_{avg}/f_{osc}$)** | $47.4\text{ fJ}$ |
+| **Effective switched capacitance ($C_{sc}$)** | $14.62\text{ fF}$ |
+
+### Propagation Delays $t_{PHL}$ and $t_{PLH}$ (Post-Layout)
+
+The delay function of the ViVA XL Calculator was applied to the output `/Vosc` to measure the high time of the output pulse, i.e. the time from its rising crossing to its falling crossing of $0.6\text{ V}$:
+
+```skill
+delay(VT("/Vosc") 0.6 1 "rising" VT("/Vosc") 0.6 1 "falling" 0 0 nil nil)
+```
+
+The result is **$90.14\text{ ps}$**. Swapping the edges (`"falling"` first, `"rising"` second) returns the same magnitude with the opposite sign, **$-90.14\text{ ps}$**, because the first rising edge occurs before the first falling edge.
+
+**Rising-to-falling delay on `/Vosc` (`90.14 ps`):**
+
+![Delay Rising to Falling](Screenshot%202026-11-21%20131213.png)
+
+**Falling-to-rising delay on `/Vosc` (`-90.14 ps`, same magnitude):**
+
+![Delay Falling to Rising](Screenshot%202026-11-21%20131351.png)
+
+**Extracting $t_{PHL}$ and $t_{PLH}$:** in a three-stage ring each node passes through the stages in turn, so for one node:
+
+$$T_H = 2\,t_{PHL} + t_{PLH} \qquad T_L = 2\,t_{PLH} + t_{PHL} \qquad T = T_H + T_L = 3\,(t_{PLH} + t_{PHL})$$
+
+Using the post-layout period $T = 182.25\text{ ps}$ ($f_{osc} = 5.487\text{ GHz}$) and the measured high time $T_H = 90.14\text{ ps}$:
+
+$$T_L = T - T_H = 182.25 - 90.14 = 92.11\text{ ps}$$
+
+$$t_{PLH} + t_{PHL} = \frac{T}{3} = 60.75\text{ ps} \qquad t_{PHL} - t_{PLH} = T_H - T_L = -1.97\text{ ps}$$
+
+$$t_{PHL} = \frac{60.75 - 1.97}{2} \approx 29.4\text{ ps} \qquad t_{PLH} = \frac{60.75 + 1.97}{2} \approx 31.4\text{ ps}$$
+
+$$t_{pd} = \frac{t_{PLH} + t_{PHL}}{2} = \frac{31.4 + 29.4}{2} \approx 30.4\text{ ps}$$
+
+| Quantity | Value (Post-Layout) |
+| :--- | :--- |
+| **High time $T_H$** (measured at $0.6\text{ V}$) | $90.14\text{ ps}$ |
+| **Low time $T_L = T - T_H$** | $92.11\text{ ps}$ |
+| **$t_{PHL}$ (estimated)** | $29.4\text{ ps}$ |
+| **$t_{PLH}$ (estimated)** | $31.4\text{ ps}$ |
+| **$t_{pd} = (t_{PLH} + t_{PHL})/2$** | $30.4\text{ ps}$ (matches $1/(6 f_{osc}) = 30.37\text{ ps}$) |
+
+> **Note:** $t_{PHL}$ and $t_{PLH}$ here are estimated from the high and low times of the output rather than measured directly between the input and output of one stage. The $0.6\text{ V}$ threshold is slightly above the midpoint of the output swing (about $0.46\text{ V}$ for a $0.07\text{ V}$ to $0.85\text{ V}$ swing), so the split between the two values is approximate, while their sum is fixed by the oscillation period. A direct measurement can be made at the $50\%$ level between two internal stage nodes of the extracted view.
 
 ---
 
@@ -422,18 +479,20 @@ In the Calculator screenshots below, the supply-voltage factor in the expression
 | **Transient analysis (`0–100 ns`)** | Sustained oscillation (`0.07 V` – `0.92 V`) | Sustained oscillation (`0.07 V` – `0.85 V`) |
 | **Oscillation frequency ($f_{osc}$)** | **$13.2021\text{ GHz}$** | **$5.487\text{ GHz}$** |
 | **Propagation delay per stage ($t_{pd}$)** | **$12.62\text{ ps}$** ($= 1/(6 f_{osc})$) | **$30.37\text{ ps}$** |
+| **$t_{PHL}$ / $t_{PLH}$ (estimated)** | – | **$29.4\text{ ps}$ / $31.4\text{ ps}$** |
 | **Average power ($P_{avg}$)** | **$115.353\ \mu\text{W}$** | **$259.9\ \mu\text{W}$** |
 | **Power-Delay Product (PDP)** | **$1.456\text{ fJ}$** | **$7.894\text{ fJ}$** |
 | **Energy-Delay Product (EDP)** | **$1.84 \times 10^{-26}\text{ J·s}$** | **$2.40 \times 10^{-25}\text{ J·s}$** |
+| **Effective switched capacitance ($C_{sc}$)** | **$2.70\text{ fF}$** | **$14.62\text{ fF}$** |
 | **DRC (Assura)** | **0 reported violations (`No DRC errors found`)** | – |
 | **LVS (Assura)** | **0 reported mismatches (`Schematic and Layout Match`)** | – |
 | **Parasitic extraction (QRC/RCX)** | – | **`av_extracted` view generated** |
 
 ---
 
-## Power-Delay Product (PDP) and Energy-Delay Product (EDP)
+## Power-Delay Product (PDP), Energy-Delay Product (EDP) and Effective Capacitance
 
-The PDP and EDP quantify the energy efficiency and speed trade-off of the oscillator.
+The PDP and EDP quantify the energy efficiency and speed trade-off of the oscillator. The effective switched (short-circuit) capacitance $C_{sc}$ expresses the total dynamic power as an equivalent lumped capacitance.
 
 ### Pre-Layout Calculation
 
@@ -473,6 +532,35 @@ $$EDP = PDP \times t_{pd} = 7.894\text{ fJ} \times 30.37\text{ ps} \approx 2.40 
 
 $$E_{cycle} = \frac{P_{avg}}{f_{osc}} = \frac{259.9\ \mu\text{W}}{5.487\text{ GHz}} \approx 47.4\text{ fJ}$$
 
+### Effective Switched (Short-Circuit) Capacitance
+
+From the dynamic power relation $P_{dynamic\text{-}sc} = \alpha \, C_{sc} \, f_{osc} \, V_{DD}^{2}$, with $\alpha = 1$ (each node completes one charge/discharge cycle per oscillation period) and the supply voltage $V_{DD} = 1.8\text{ V}$ of source `V1`:
+
+$$C_{sc} = \frac{P_{dynamic\text{-}sc}}{\alpha \, f_{osc} \, V_{DD}^{2}}$$
+
+**Pre-layout:**
+
+$$C_{sc,pre} = \frac{115.353\ \mu\text{W}}{1 \times 13.2021\text{ GHz} \times (1.8\text{ V})^{2}} = \frac{115.353 \times 10^{-6}}{4.277 \times 10^{10}} \approx 2.70\text{ fF}$$
+
+**Post-layout (RCX):**
+
+$$C_{sc,post} = \frac{259.9\ \mu\text{W}}{1 \times 5.487\text{ GHz} \times (1.8\text{ V})^{2}} = \frac{259.9 \times 10^{-6}}{1.778 \times 10^{10}} \approx 14.62\text{ fF}$$
+
+**Per-stage values** (the effective capacitance is shared by the three stage nodes, $C_{sc}/N$):
+
+| | Pre-Layout | Post-Layout (RCX) |
+| :--- | :--- | :--- |
+| **Total $C_{sc}$** | $2.70\text{ fF}$ | $14.62\text{ fF}$ |
+| **Per stage ($C_{sc}/3$)** | $0.90\text{ fF}$ | $4.87\text{ fF}$ |
+
+**Capacitance added by the layout parasitics:**
+
+$$\Delta C_{sc} = C_{sc,post} - C_{sc,pre} = 14.62\text{ fF} - 2.70\text{ fF} \approx 11.9\text{ fF} \quad (\approx 4.0\text{ fF per stage},\ \approx 5.4\times\ \text{increase})$$
+
+**Cross-check using the charge per cycle:**
+
+$$C_{sc,post} = \frac{I_{avg}}{f_{osc} \, V_{DD}} = \frac{144.4\ \mu\text{A}}{5.487\text{ GHz} \times 1.8\text{ V}} \approx 14.62\text{ fF}$$
+
 ### Pre-Layout vs Post-Layout (RCX) Comparison
 
 | Metric | Formula | Pre-Layout | Post-Layout (RCX) | 
@@ -484,11 +572,14 @@ $$E_{cycle} = \frac{P_{avg}}{f_{osc}} = \frac{259.9\ \mu\text{W}}{5.487\text{ GH
 | **PDP** | $P_{avg} \times t_{pd}$ | $1.456\text{ fJ}$ | $7.894\text{ fJ}$ | 
 | **EDP** | $PDP \times t_{pd}$ | $1.84 \times 10^{-26}\text{ J·s}$ | $2.40 \times 10^{-25}\text{ J·s}$ | 
 | **Energy per cycle** | $P_{avg}/f_{osc}$ | $8.74\text{ fJ}$ | $47.4\text{ fJ}$ | 
+| **Effective capacitance ($C_{sc}$)** | $P/(\alpha f_{osc} V_{DD}^{2})$ | $2.70\text{ fF}$ | $14.62\text{ fF}$ | 
 
 ### Observations and Notes
 
 - The extracted parasitic capacitance adds load to every stage output, and the extracted resistance slows the edges further, so the post-layout oscillation frequency drops by about 58% and the stage delay rises from $12.62\text{ ps}$ to $30.37\text{ ps}$.
 - Because the same current now takes longer to charge a larger capacitance, the energy per cycle and the PDP rise sharply. EDP contains $t_{pd}^{2}$, so it degrades the most.
+- The effective switched capacitance rises from about $2.70\text{ fF}$ to $14.62\text{ fF}$, an increase of about $11.9\text{ fF}$, which is the load added by the extracted layout parasitics.
+- $C_{sc}$ is computed from the total supply power with $\alpha = 1$. It therefore includes the short-circuit current of the inverters and the static bias branch (`PM0`, `NM0`, `NM1`) and should be read as an effective capacitance. A different activity-factor convention, for example $\alpha = 0.5$, would scale the values accordingly.
 - $t_{pd}$ is derived from the oscillation frequency and represents the average of $t_{PLH}$ and $t_{PHL}$. It can be cross-checked by measuring both across one stage at the 50% crossing points.
 - $P_{avg}$ is the total circuit power and includes the static bias branch (`PM0`, `NM0`, `NM1`) as well as switching power.
 - **Measurement method:** the pre-layout power was obtained with `average(getData(":pwr" ?result "tran"))`, while the post-layout power was obtained from the supply current of `V1` multiplied by $1.8\text{ V}$. For a strict like-for-like comparison, both runs can be measured with the supply-current expression.
@@ -549,22 +640,24 @@ Current_Starved_Ring_Oscillator/
     ├── Screenshot 2026-11-20 203559.png
     ├── Screenshot 2026-11-20 202940.png
     ├── Screenshot 2026-11-20 202917.png
-    ├── Screenshot 2026-11-21 092850.png
-    ├── Screenshot 2026-11-21 092910.png
-    ├── Screenshot 2026-11-21 092935.png
-    ├── Screenshot 2026-11-21 093002.png
-    ├── Screenshot 2026-11-21 093031.png
-    ├── Screenshot 2026-11-21 093058.png
-    └── Screenshot 2026-11-21 093127.png
+    ├── Screenshot 2026-11-21 082904.png
+    ├── Screenshot 2026-11-21 084053.png
+    ├── Screenshot 2026-11-21 091738.png
+    ├── Screenshot 2026-11-21 091213.png
+    ├── Screenshot 2026-11-21 091414.png
+    ├── Screenshot 2026-11-21 091452.png
+    ├── Screenshot 2026-11-21 091526.png
+    ├── Screenshot 2026-11-21 155842.png
+    └── Screenshot 2026-11-21 155920.png
 ```
 
 ---
 
 ## Conclusion
 
-A 3-stage Current-Starved Ring Oscillator was successfully designed, simulated, and physically verified at the 90 nm CMOS technology node (`gpdk090`) in Cadence Virtuoso. Pre-layout transient analysis with an initial condition of `/vosc = 0 V` confirmed stable oscillation at **$13.2021\text{ GHz}$** with an average power dissipation of **$115.353\ \mu\text{W}$**. This corresponds to a propagation delay of about $12.62\text{ ps}$ per stage, a power-delay product of about $1.456\text{ fJ}$, and an energy-delay product of about $1.84 \times 10^{-26}\text{ J·s}$. The physical layout passed Assura DRC (`0` violations) and Assura LVS (`Schematic and Layout Match`), and Assura QRC/RCX parasitic extraction generated the `av_extracted` view.
+A 3-stage Current-Starved Ring Oscillator was successfully designed, simulated, and physically verified at the 90 nm CMOS technology node (`gpdk090`) in Cadence Virtuoso. Pre-layout transient analysis with an initial condition of `/vosc = 0 V` confirmed stable oscillation at **$13.2021\text{ GHz}$** with an average power dissipation of **$115.353\ \mu\text{W}$**. This corresponds to a propagation delay of about $12.62\text{ ps}$ per stage, a power-delay product of about $1.456\text{ fJ}$, an energy-delay product of about $1.84 \times 10^{-26}\text{ J·s}$, and an effective switched capacitance of about $2.70\text{ fF}$. The physical layout passed Assura DRC (`0` violations) and Assura LVS (`Schematic and Layout Match`), and Assura QRC/RCX parasitic extraction generated the `av_extracted` view.
 
-Post-layout simulation of the extracted view showed the effect of the interconnect parasitics: the oscillation frequency fell to **$5.487\text{ GHz}$**, the stage delay rose to **$30.37\text{ ps}$**, the average power rose to about **$259.9\ \mu\text{W}$**, the PDP rose to about **$7.894\text{ fJ}$**, and the EDP rose to about **$2.40 \times 10^{-25}\text{ J·s}$**. These results show that parasitic R and C have a large impact on the speed and energy efficiency of this small, high-frequency oscillator and must be considered in the design.
+Post-layout simulation of the extracted view showed the effect of the interconnect parasitics: the oscillation frequency fell to **$5.487\text{ GHz}$**, the stage delay rose to **$30.37\text{ ps}$**, the average power rose to about **$259.9\ \mu\text{W}$**, the PDP rose to about **$7.894\text{ fJ}$**, the EDP rose to about **$2.40 \times 10^{-25}\text{ J·s}$**, and the effective switched capacitance rose to about **$14.62\text{ fF}$** (an increase of about $11.9\text{ fF}$ from the layout parasitics). These results show that parasitic R and C have a large impact on the speed and energy efficiency of this small, high-frequency oscillator and must be considered in the design.
 
 ---
 
