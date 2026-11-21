@@ -2,7 +2,7 @@
 
 Designing and simulating a **3-Stage Current-Starved Ring Oscillator (CSRO)**—often used as a Voltage-Controlled Oscillator (VCO)—in Cadence Virtuoso involves building a 12-transistor current-mirror biased inverter chain and running transient, frequency, power, and physical verification flows.
 
-This project presents the complete design, schematic implementation, initial-condition transient simulation, performance evaluation, physical layout, and verification (DRC, LVS, and QRC/RCX parasitic extraction) of a **3-Stage Current-Starved Ring Oscillator** using **90 nm CMOS technology (`gpdk090`)** in Cadence Virtuoso IC 6.1.8.
+This project presents the complete design, schematic implementation, initial-condition transient simulation, performance evaluation, physical layout, verification (DRC, LVS, and QRC/RCX parasitic extraction), and post-layout (RCX) re-simulation of a **3-Stage Current-Starved Ring Oscillator** using **90 nm CMOS technology (`gpdk090`)** in Cadence Virtuoso IC 6.1.8.
 
 ---
 
@@ -18,14 +18,16 @@ This project presents the complete design, schematic implementation, initial-con
 8. [Layout](#layout)
 9. [Design Rule Check (DRC)](#design-rule-check-drc)
 10. [Layout Versus Schematic (LVS)](#layout-versus-schematic-lvs)
-11. [Step-by-Step Implementation Workflow](#step-by-step-implementation-workflow)
-12. [Overall Performance Summary](#overall-performance-summary)
-13. [Power-Delay Product (PDP) and Energy-Delay Product (EDP)](#power-delay-product-pdp-and-energy-delay-product-edp)
-14. [Applications of Current-Starved Ring Oscillators](#applications-of-current-starved-ring-oscillators)
-15. [Tools and Technologies](#tools-and-technologies)
-16. [Project Structure](#project-structure)
-17. [Conclusion](#conclusion)
-18. [Author & Acknowledgment](#author--acknowledgment)
+11. [RC Extraction (QRC / Parasitic Extraction)](#rc-extraction-qrc--parasitic-extraction)
+12. [Post-Layout (RCX) Simulation](#post-layout-rcx-simulation)
+13. [Step-by-Step Implementation Workflow](#step-by-step-implementation-workflow)
+14. [Overall Performance Summary](#overall-performance-summary)
+15. [Power-Delay Product (PDP) and Energy-Delay Product (EDP)](#power-delay-product-pdp-and-energy-delay-product-edp)
+16. [Applications of Current-Starved Ring Oscillators](#applications-of-current-starved-ring-oscillators)
+17. [Tools and Technologies](#tools-and-technologies)
+18. [Project Structure](#project-structure)
+19. [Conclusion](#conclusion)
+20. [Author & Acknowledgment](#author--acknowledgment)
 
 ---
 
@@ -35,7 +37,7 @@ A conventional ring oscillator generates a periodic output waveform by connectin
 
 A **Current-Starved Ring Oscillator (CSRO)** improves upon this by limiting the current available to each inverter stage via current-mirror biasing transistors controlled by an external control voltage ($V_{ctrl}$):
 
-- **Biasing and Current Mirror Stage (`NM0`, `NM1`, `PM0`):** The external control voltage $V_{ctrl}$ (`1.8 V`) drives the gate of bias input NMOS `NM0`, establishing a reference drain current $I_{ref}$ through diode-connected NMOS `NM1` and diode-connected PMOS `PM0`. This reference current is mirrored simultaneously across the upper PMOS current sources (`PM1`–`PM3`) and the lower NMOS current sinks (`NM2`–`NM4`).
+- **Biasing and Current Mirror Stage (`NM0`, `NM1`, `PM0`):** The external control voltage $V_{ctrl}$ drives the gate of bias input NMOS `NM0`, establishing a reference drain current $I_{ref}$ through diode-connected NMOS `NM1` and diode-connected PMOS `PM0`. This reference current is mirrored simultaneously across the upper PMOS current sources (`PM1`–`PM3`) and the lower NMOS current sinks (`NM2`–`NM4`).
 - **Three-Stage Current-Starved Inverter Ring (`PM1`–`PM6`, `NM2`–`NM4`):** Three cascaded CMOS inverter stages (`PM4`/`NM2`, `PM5`/`NM3`, and `PM6`/`NM4`) are starved of unlimited supply current by the upper PMOS current sources and lower NMOS current sinks.
 - **Closed-Loop Feedback & Oscillation Condition:** The output of the third inverter stage (`vosc`) feeds directly back to the input of the first stage. Because an odd number of inverting stages ($N = 3$) provides $180^\circ$ of DC phase inversion plus an additional $180^\circ$ of frequency-dependent RC phase shift (totaling $360^\circ$ with loop gain $\ge 1$), the circuit satisfies the Barkhausen criterion and sustains continuous oscillation.
 - **Frequency Tuning Mechanism:** Varying $V_{ctrl}$ modulates the mirrored drain current $I_D$, directly controlling the slew rate and propagation delay $t_d$ of each inverter stage.
@@ -58,18 +60,20 @@ The current-starved ring oscillator was designed and verified using the Generic 
 | **Output Node** | `vosc` | Rail-to-rail periodic output signal |
 | **Simulation Tool** | Cadence Virtuoso IC 6.1.8 | ADE Explorer / Maestro & ViVA XL |
 | **Simulator** | Spectre | Transient analysis (`0–100 ns`, `moderate` accuracy) |
-| **Oscillation Frequency ($f_{osc}$)** | **$13.2021\text{ GHz}$** ($\approx 13.2\text{ GHz}$) | Period $T \approx 75.75\text{ ps}$ |
-| **Average Power ($P_{avg}$)** | **$115.353\ \mu\text{W}$** ($\approx 115.4\ \mu\text{W}$) | Evaluated over transient window |
+| **Oscillation Frequency ($f_{osc}$)** | **$13.2021\text{ GHz}$** ($\approx 13.2\text{ GHz}$) | Pre-layout; period $T \approx 75.75\text{ ps}$ |
+| **Average Power ($P_{avg}$)** | **$115.353\ \mu\text{W}$** ($\approx 115.4\ \mu\text{W}$) | Pre-layout; evaluated over transient window |
 | **Physical Verification** | DRC, LVS, and QRC/RCX | 0 DRC errors, 0 LVS mismatches, `av_extracted` generated |
+| **Post-Layout (RCX) Frequency** | **$5.487\text{ GHz}$** | `av_extracted` simulation |
+| **Post-Layout (RCX) Power** | **$259.9\ \mu\text{W}$** | From `V1` supply current $\times$ $1.8\text{ V}$ |
 
 ### Main Design Components
 
 1. **Bias & Current-Mirror PMOS (`PM0`–`PM3`, 4 instances, `gpdk090_pmos1v`):** `PM0` acts as the diode-connected reference load, while `PM1`–`PM3` mirror $I_{ref}$ as upper current sources ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$).
 2. **Inverter Pull-Up PMOS (`PM4`–`PM6`, 3 instances, `gpdk090_pmos1v`):** Switching pull-up transistors for Stages 1, 2, and 3 ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$).
-3. **Bias & Current-Mirror NMOS (`NM0`–`NM1`, 2 instances, `gpdk090_nmos1v`):** `NM0` receives $V_{ctrl}$ at its gate and `NM1` acts as the diode-connected NMOS current-mirror reference ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$).
+3. **Bias & Current-Mirror NMOS (`NM0`–`NM1`, 2 instances, `gpdk090_nmos1v`):** `NM0` receives the control voltage at its gate and `NM1` acts as the diode-connected NMOS current-mirror reference ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$).
 4. **Current-Starving Pull-Down NMOS (`NM2`–`NM4`, 3 instances, `gpdk090_nmos1v`):** Current-sink transistors limiting discharge current for Stages 1, 2, and 3 ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$).
-5. **Supply Voltage Source (`V0`):** $V_{DD} = 1.0\text{ V}$ DC source.
-6. **Control Voltage Source (`V1`):** $V_{ctrl} = 1.8\text{ V}$ DC source.
+5. **Supply Voltage Source (`V0`):** DC source (`vdc = 1 V`).
+6. **Control Voltage Source (`V1`):** DC source (`vdc = 1.8 V`).
 7. **Feedback & Output Node (`vosc`):** Third-stage output routed back to the first inverter input.
 
 ---
@@ -96,7 +100,7 @@ The oscillation frequency $f_{osc}$ of an $N$-stage Current-Starved Ring Oscilla
 
 $$f_{osc} = \frac{I_D}{N \cdot C_{tot} \cdot V_{DD}}$$
 
-From the simulated oscillation frequency of $f_{osc} = 13.2021\text{ GHz}$:
+From the simulated pre-layout oscillation frequency of $f_{osc} = 13.2021\text{ GHz}$:
 
 $$T = \frac{1}{13.2021\text{ GHz}} \approx 75.75\text{ ps}$$
 
@@ -113,7 +117,7 @@ The control voltage $V_{ctrl}$ regulates the available charging and discharging 
 
 The average power consumption is evaluated from the supply voltage and average supply current:
 
-$$P_{avg} = \frac{1}{T_{sim}} \int_{0}^{T_{sim}} P(t)\,dt = V_{DD} \times I_{avg}$$
+$$P_{avg} = \frac{1}{T_{sim}} \int_{0}^{T_{sim}} P(t)\,dt = V_{supply} \times I_{avg}$$
 
 For the dynamic switching component:
 
@@ -135,7 +139,7 @@ $$PDP = P_{avg} \times t_{pd} \qquad\qquad EDP = PDP \times t_{pd} = P_{avg} \ti
 
 ## Schematic Design
 
-The fundamental schematic of the CSRO (`connectLib/csrosch/schematic`) was built in Cadence Virtuoso Schematic Editor L using 90 nm CMOS technology (`gpdk090_pmos1v` and `gpdk090_nmos1v`), uniform sizing ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$), DC supply `V0` ($1.0\text{ V}$), and control voltage `V1` ($1.8\text{ V}$).
+The fundamental schematic of the CSRO (`connectLib/csrosch/schematic`) was built in Cadence Virtuoso Schematic Editor L using 90 nm CMOS technology (`gpdk090_pmos1v` and `gpdk090_nmos1v`), uniform sizing ($W = 120\text{ nm}, L = 100\text{ nm}, m = 1$), and two DC sources `V0` ($1\text{ V}$) and `V1` ($1.8\text{ V}$).
 
 **Schematic of the Current-Starved Ring Oscillator:**
 
@@ -147,7 +151,7 @@ The fundamental schematic of the CSRO (`connectLib/csrosch/schematic`) was built
 
 Transient analysis was performed using Cadence ADE Explorer and the Spectre simulator (`0` to `100 ns`, `moderate` accuracy). To break initial DC metastability and initiate oscillation, an initial condition of `/vosc = 0 V` was configured in ADE Explorer.
 
-The transient response observed at the oscillator output node (`vosc`) confirms rapid startup and sustained periodic oscillations between $\approx 0.07\text{ V}$ and $\approx 0.92\text{ V}$ under a $1.0\text{ V}$ supply.
+The transient response observed at the oscillator output node (`vosc`) confirms rapid startup and sustained periodic oscillations between $\approx 0.07\text{ V}$ and $\approx 0.92\text{ V}$.
 
 **Initial Condition Setup (`/vosc = 0 V`) in ADE Explorer:**
 
@@ -169,9 +173,11 @@ The frequency measurement expression used was:
 frequency(VT("/vosc"))
 ```
 
-The calculator determines an oscillation frequency of **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$ rounded) from the time-domain output waveform.
+The calculator determines a pre-layout oscillation frequency of **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$ rounded) from the time-domain output waveform.
 
 **Frequency analysis showing the oscillation frequency:**
+
+![Frequency Analysis](Screenshot%20from%202026-11-03%2011-54-35.png)
 
 ---
 
@@ -191,17 +197,21 @@ frequency(VT("/vosc"))
 average(getData(":pwr" ?result "tran"))
 ```
 
-### ADE Simulation Measurements
+### ADE Simulation Measurements (Pre-Layout)
 
 | Measurement | Expression / Variable | Observed Value |
 | --- | --- | --- |
 | **Oscillation frequency** | `frequency(VT("/vosc"))` | **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$) |
 | **Average power** | `average(getData(":pwr" ?result "tran"))` | **$115.353\ \mu\text{W}$** ($115.4\ \mu\text{W}$) |
-| **ADE design variables** | `vdd = 1`, `vosc = 1.8` | $V_{DD} = 1.0\text{ V}$, $V_{ctrl} = 1.8\text{ V}$ |
+| **ADE design variables** | `vdd = 1`, `vosc = 1.8` | Values of sources `V0` and `V1` |
 
 **Transient Output Voltage (`/vosc`) and Instantaneous Power (`:pwr`) Waveforms:**
 
+![Transient and Power Waveforms](Screenshot%20from%202026-11-03%2011-59-22.jpg)
+
 **ADE Explorer Scalar Outputs (`13.2 GHz` and `115.4 µW`):**
+
+![ADE Scalar Outputs](Screenshot%20from%202026-11-03%2012-09-59.png)
 
 ---
 
@@ -231,6 +241,7 @@ Total DRC violations: 0
 ```
 
 **DRC verification result:**
+
 ![DRC](Screenshot%20from%202026-11-10%2016-25-21.png)
 
 * Physical layout checked against the 90 nm CMOS (`gpdk090`) design rules across `Nwell`, `Oxide`, `Poly`, `Pimp`/`Nimp`, `Cont`, `Metal1`, `Via1`, and `Metal2` layers.
@@ -240,9 +251,12 @@ Total DRC violations: 0
 ---
 
 ## Layout Versus Schematic (LVS)
-![LVS](Screenshot%20from%202026-11-10%2016-25-47.png)
 
 Layout Versus Schematic (LVS) verification was performed using **Assura LVS** to verify exact correspondence between the physical layout and the original schematic (`csrosch`).
+
+**LVS run summary:**
+
+![LVS](Screenshot%20from%202026-11-10%2016-25-47.png)
 
 The supplied LVS run summary reports:
 
@@ -263,21 +277,107 @@ Comparison Information:
 Total DRC violations: 0
 ```
 
-Following LVS verification, **Assura QRC (RCX)** was run to generate the `av_extracted` parasitic netlist view.
-
-**LVS run summary:**
-
 **Final LVS verification:**
+
 ![LAYOUT MATCH](Screenshot%20from%202026-11-10%2016-25-52.png)
 
-
 ---
-## Schematic and AV Extraction Match
+
+## RC Extraction (QRC / Parasitic Extraction)
+
+Following DRC and LVS, **Assura QRC (RCX)** was run on the layout to extract the parasitic resistance and capacitance of the interconnect. The extraction generates the `av_extracted` view of `csro`, which contains the original transistors together with parasitic capacitors (`pcapacitor`, values in the range of a few hundred attofarads) and parasitic resistors (`presistor`) added between nets.
+
+**Schematic and AV Extraction Match:**
+
 ![Schematic and AV Extraction Match](Screenshot%202026-11-20%20203559.png)
 
-## RC Extraction - Parasitic Extraction
+**RC Extraction - Parasitic Extraction (`av_extracted` view):**
+
 ![RC Extraction](Screenshot%202026-11-20%20202940.png)
+
 ![RC Extraction](Screenshot%202026-11-20%20202917.png)
+
+---
+
+## Post-Layout (RCX) Simulation
+
+To measure the effect of the layout parasitics, the extracted view was simulated with the same analysis settings as the pre-layout run.
+
+### Testbench
+
+1. A symbol (`csro/csro/symbol`) with pins `Vctrl` and `Vosc` was generated from the `csro` cell. The supply and ground are the global nets `vdd!` and `gnd!`.
+2. A testbench `csro/csro_tb_new_o/schematic` was built with the `csro` symbol, a DC source `V1` (`vdc = 1.8`) on the `vdd` rail, a DC source `V0` (`vdc = 1`) on `Vctrl`, ground, and the `Vosc` output pin. These are the same voltages that are wired in the pre-layout schematic.
+
+**Post-layout testbench (`csro/csro_tb_new_o`):**
+
+![Post-Layout Testbench](Screenshot%202026-11-21%2001.png)
+
+> **Note:** The source labelling in the Design Specifications table (`V0` = $V_{DD}$, `V1` = $V_{ctrl}$) is the reverse of how the sources are connected in the schematic and in this testbench. In both, `V1` ($1.8\text{ V}$) feeds the supply rail and `V0` ($1\text{ V}$) drives the control input. All simulation results in this README use the voltages exactly as wired.
+
+### ADE Explorer Setup
+
+| Setting | Value |
+| :--- | :--- |
+| **Simulator** | `spectre` |
+| **Model library** | `gpdk090.scs`, section `NN` (the 45 nm model file was disabled) |
+| **Analysis** | `tran`, `0` to `100n`, `moderate` accuracy |
+| **Initial condition** | `0 V` on `/Vosc` |
+| **Switch View List** | `spectre av_extracted cmos_sch cmos.sch schematic veriloga` |
+| **Stop View List** | `spectre` |
+
+Placing `av_extracted` before `schematic` in the Switch View List makes the simulator use the extracted view, so the parasitic R and C elements are included in the netlist.
+
+### Post-Layout Transient Response
+
+The extracted circuit continues to oscillate, with the output swinging between about $0.07\text{ V}$ and $0.85\text{ V}$, but at a visibly lower frequency than before layout.
+
+**Post-layout output waveform, outputs table and supply current waveform (ADE Explorer):**
+
+![Post-Layout ADE Results](Screenshot%202026-11-21%2006.png)
+
+### Post-Layout Measurement Expressions
+
+The `:pwr` expression used before layout is not available from the testbench hierarchy (it returns `eval err`), so the power is computed from the supply current of `V1` multiplied by its voltage ($1.8\text{ V}$).
+
+| Quantity | Calculator expression |
+| :--- | :--- |
+| **Frequency** | `frequency(VT("/Vosc"))` |
+| **Average supply current** | `average(-IT("/V1/PLUS"))` |
+| **Average power** | `average(-IT("/V1/PLUS") * 1.8)` |
+| **Propagation delay** $t_{pd}$ | `1 / (6 * frequency(VT("/Vosc")))` |
+| **PDP** | `average(-IT("/V1/PLUS") * 1.8) / (6 * frequency(VT("/Vosc")))` |
+| **EDP** | `average(-IT("/V1/PLUS") * 1.8) / ((6 * frequency(VT("/Vosc"))) ** 2)` |
+
+**Post-layout frequency and average supply current of `V1` (`5.487 GHz` and `144.4 µA`):**
+
+![Post-Layout Frequency and Current](Screenshot%202026-11-21%2002.png)
+
+**Post-layout propagation delay $t_{pd}$ (`30.37 ps`):**
+
+![Post-Layout tpd](Screenshot%202026-11-21%2003.png)
+
+**Post-layout PDP (`7.894 fJ` at $1.8\text{ V}$):**
+
+![Post-Layout PDP](Screenshot%202026-11-21%2004.png)
+
+**Post-layout EDP (`2.40e-25 J·s` at $1.8\text{ V}$):**
+
+![Post-Layout EDP](Screenshot%202026-11-21%2005.png)
+
+### Post-Layout Results
+
+| Parameter | Value |
+| :--- | :--- |
+| **Oscillation frequency ($f_{osc}$)** | **$5.487\text{ GHz}$** |
+| **Period ($T$)** | $182.25\text{ ps}$ |
+| **Propagation delay ($t_{pd}$)** | **$30.37\text{ ps}$** |
+| **Average supply current ($I_{avg}$)** | $144.4\ \mu\text{A}$ |
+| **Average power ($P_{avg} = 1.8\text{ V} \times I_{avg}$)** | **$259.9\ \mu\text{W}$** |
+| **Power-Delay Product (PDP)** | **$7.894\text{ fJ}$** |
+| **Energy-Delay Product (EDP)** | **$2.40 \times 10^{-25}\text{ J·s}$** |
+| **Energy per cycle ($P_{avg}/f_{osc}$)** | $47.4\text{ fJ}$ |
+
+---
 
 ## Step-by-Step Implementation Workflow
 
@@ -286,7 +386,7 @@ Following LVS verification, **Assura QRC (RCX)** was run to generate the `av_ext
 1. Launch Cadence Virtuoso IC 6.1.8 and open library `connectLib` / `csro`. Create a new schematic cell view named `csrosch`.
 2. Place 7 PMOS (`pmos1v`) and 5 NMOS (`nmos1v`) transistors from `gpdk090`, setting all dimensions to $W = 120\text{ nm}$, $L = 100\text{ nm}$, and $m = 1$.
 3. Wire the current-mirror biasing network (`NM0`, `NM1`, `PM0`) to the three cascaded current-starved inverter stages (`PM1`–`PM6`, `NM2`–`NM4`), connecting output `vosc` back to the first inverter input.
-4. Connect DC sources `V0 = 1 V` ($V_{DD}$) and `V1 = 1.8 V` ($V_{ctrl}$), add pins `vdd`, `gnd`, and `vosc`, and run **Check and Save**.
+4. Connect the DC sources `V0 = 1 V` and `V1 = 1.8 V`, add pins `vdd`, `gnd`, and `vosc`, and run **Check and Save**.
 5. Open Virtuoso ADE Explorer / Maestro, select the `spectre` simulator, set an initial condition of `0 V` on `/vosc`, and configure a transient analysis (`tran`) from `0` to `100n` with `moderate` accuracy.
 6. Add output expressions `frequency(VT("/vosc"))` and `average(getData(":pwr" ?result "tran"))`, run the simulation, and verify sustained oscillation at $13.2021\text{ GHz}$ with $115.353\ \mu\text{W}$ average power.
 
@@ -299,29 +399,39 @@ Following LVS verification, **Assura QRC (RCX)** was run to generate the `av_ext
 5. Run **Assura $\rightarrow$ Run LVS** and verify `Schematic and Layout Match` with zero net, device, pin, or parameter mismatches.
 6. Run **Assura $\rightarrow$ Run QRC (RCX)** to generate the `av_extracted` view with coupled parasitic resistances and capacitances.
 
+### 3. Post-Layout (RCX) Simulation
+
+1. Generate a symbol for `csro/csro` and build the testbench `csro_tb_new_o` with the sources on `vdd!` and `Vctrl`.
+2. Launch ADE Explorer from the testbench, select `spectre`, add the `gpdk090` model file, and set the `tran` analysis (`0`–`100n`, `moderate`).
+3. Set the Switch View List to `spectre av_extracted cmos_sch cmos.sch schematic veriloga` and the initial condition `0 V` on `/Vosc`.
+4. Run the simulation and measure frequency, supply current, $t_{pd}$, PDP and EDP in the ViVA XL Calculator.
+5. Compare against the pre-layout results.
+
 ---
 
 ## Overall Performance Summary
 
-| Analysis / Verification | Main Result |
-| --- | --- |
-| **Transient analysis (`0–100 ns`)** | Sustained periodic oscillation (`0.07 V` – `0.92 V`) |
-| **Oscillation frequency ($f_{osc}$)** | **$13.2021\text{ GHz}$** ($13.2\text{ GHz}$) |
-| **Propagation delay per stage ($t_{pd}$)** | **$12.62\text{ ps}$** ($= 1/(6 f_{osc})$) |
-| **Average power ($P_{avg}$)** | **$115.353\ \mu\text{W}$** ($115.4\ \mu\text{W}$) |
-| **Power-Delay Product (PDP)** | **$1.456\text{ fJ}$** |
-| **Energy-Delay Product (EDP)** | **$1.84 \times 10^{-26}\text{ J·s}$** |
-| **DRC (Assura)** | **0 reported violations (`No DRC errors found`)** |
-| **LVS (Assura)** | **0 reported mismatches (`Schematic and Layout Match`)** |
-| **Parasitic extraction (QRC/RCX)** | **`av_extracted` view generated** |
+| Analysis / Verification | Pre-Layout | Post-Layout (RCX) |
+| --- | --- | --- |
+| **Transient analysis (`0–100 ns`)** | Sustained oscillation (`0.07 V` – `0.92 V`) | Sustained oscillation (`0.07 V` – `0.85 V`) |
+| **Oscillation frequency ($f_{osc}$)** | **$13.2021\text{ GHz}$** | **$5.487\text{ GHz}$** |
+| **Propagation delay per stage ($t_{pd}$)** | **$12.62\text{ ps}$** ($= 1/(6 f_{osc})$) | **$30.37\text{ ps}$** |
+| **Average power ($P_{avg}$)** | **$115.353\ \mu\text{W}$** | **$259.9\ \mu\text{W}$** |
+| **Power-Delay Product (PDP)** | **$1.456\text{ fJ}$** | **$7.894\text{ fJ}$** |
+| **Energy-Delay Product (EDP)** | **$1.84 \times 10^{-26}\text{ J·s}$** | **$2.40 \times 10^{-25}\text{ J·s}$** |
+| **DRC (Assura)** | **0 reported violations (`No DRC errors found`)** | – |
+| **LVS (Assura)** | **0 reported mismatches (`Schematic and Layout Match`)** | – |
+| **Parasitic extraction (QRC/RCX)** | – | **`av_extracted` view generated** |
 
 ---
 
 ## Power-Delay Product (PDP) and Energy-Delay Product (EDP)
 
-The PDP and EDP quantify the energy efficiency and speed trade-off of the oscillator. They are computed from the pre-layout simulation results ($f_{osc} = 13.2021\text{ GHz}$, $P_{avg} = 115.353\ \mu\text{W}$).
+The PDP and EDP quantify the energy efficiency and speed trade-off of the oscillator.
 
-### Calculation
+### Pre-Layout Calculation
+
+Using $f_{osc} = 13.2021\text{ GHz}$ and $P_{avg} = 115.353\ \mu\text{W}$:
 
 **Oscillation period:**
 
@@ -343,22 +453,39 @@ $$EDP = PDP \times t_{pd} = 1.456\text{ fJ} \times 12.62\text{ ps} \approx 1.84 
 
 $$E_{cycle} = \frac{P_{avg}}{f_{osc}} = \frac{115.353\ \mu\text{W}}{13.2021\text{ GHz}} \approx 8.74\text{ fJ}$$
 
+### Post-Layout (RCX) Calculation
+
+Using $f_{osc} = 5.487\text{ GHz}$ and $I_{avg} = 144.4\ \mu\text{A}$ drawn from the $1.8\text{ V}$ source `V1`:
+
+$$P_{avg} = 1.8\text{ V} \times 144.4\ \mu\text{A} \approx 259.9\ \mu\text{W}$$
+
+$$t_{pd} = \frac{1}{6 \times 5.487\text{ GHz}} \approx 30.37\text{ ps}$$
+
+$$PDP = P_{avg} \times t_{pd} = 259.9\ \mu\text{W} \times 30.37\text{ ps} \approx 7.894\text{ fJ}$$
+
+$$EDP = PDP \times t_{pd} = 7.894\text{ fJ} \times 30.37\text{ ps} \approx 2.40 \times 10^{-25}\text{ J·s}$$
+
+$$E_{cycle} = \frac{P_{avg}}{f_{osc}} = \frac{259.9\ \mu\text{W}}{5.487\text{ GHz}} \approx 47.4\text{ fJ}$$
+
 ### Pre-Layout vs Post-Layout (RCX) Comparison
 
-| Metric | Formula | Pre-Layout | Post-Layout (RCX) |
-| :--- | :--- | :--- | :--- |
-| **Oscillation frequency ($f_{osc}$)** | `frequency(VT("/vosc"))` | $13.2021\text{ GHz}$ | _TBD_ |
-| **Propagation delay ($t_{pd}$)** | $1/(2N f_{osc})$ | $12.62\text{ ps}$ | _TBD_ |
-| **Average power ($P_{avg}$)** | `average(getData(":pwr" ?result "tran"))` | $115.353\ \mu\text{W}$ | _TBD_ |
-| **PDP** | $P_{avg} \times t_{pd}$ | $1.456\text{ fJ}$ | _TBD_ |
-| **EDP** | $PDP \times t_{pd}$ | $1.84 \times 10^{-26}\text{ J·s}$ | _TBD_ |
-| **Energy per cycle** | $P_{avg}/f_{osc}$ | $8.74\text{ fJ}$ | _TBD_ |
+| Metric | Formula | Pre-Layout | Post-Layout (RCX) | Change |
+| :--- | :--- | :--- | :--- | :--- |
+| **Oscillation frequency ($f_{osc}$)** | `frequency(VT("/Vosc"))` | $13.2021\text{ GHz}$ | $5.487\text{ GHz}$ | $-58.4\%$ |
+| **Period ($T$)** | $1/f_{osc}$ | $75.75\text{ ps}$ | $182.25\text{ ps}$ | $\times 2.4$ |
+| **Propagation delay ($t_{pd}$)** | $1/(2N f_{osc})$ | $12.62\text{ ps}$ | $30.37\text{ ps}$ | $+140.6\%$ |
+| **Average power ($P_{avg}$)** | see notes | $115.353\ \mu\text{W}$ | $259.9\ \mu\text{W}$ | $+125\%$ |
+| **PDP** | $P_{avg} \times t_{pd}$ | $1.456\text{ fJ}$ | $7.894\text{ fJ}$ | $\times 5.4$ |
+| **EDP** | $PDP \times t_{pd}$ | $1.84 \times 10^{-26}\text{ J·s}$ | $2.40 \times 10^{-25}\text{ J·s}$ | $\times 13$ |
+| **Energy per cycle** | $P_{avg}/f_{osc}$ | $8.74\text{ fJ}$ | $47.4\text{ fJ}$ | $\times 5.4$ |
 
-### Notes
+### Observations and Notes
 
-- $t_{pd}$ here is derived from the oscillation frequency and represents the average of $t_{PLH}$ and $t_{PHL}$. It can be cross-checked in ADE by measuring $t_{PLH}$ and $t_{PHL}$ across one stage at the 50% crossing points and taking their mean.
+- The extracted parasitic capacitance adds load to every stage output, and the extracted resistance slows the edges further, so the post-layout oscillation frequency drops by about 58% and the stage delay rises from $12.62\text{ ps}$ to $30.37\text{ ps}$.
+- Because the same current now takes longer to charge a larger capacitance, the energy per cycle and the PDP rise sharply. EDP contains $t_{pd}^{2}$, so it degrades the most.
+- $t_{pd}$ is derived from the oscillation frequency and represents the average of $t_{PLH}$ and $t_{PHL}$. It can be cross-checked by measuring both across one stage at the 50% crossing points.
 - $P_{avg}$ is the total circuit power and includes the static bias branch (`PM0`, `NM0`, `NM1`) as well as switching power.
-- After RC extraction, added parasitic capacitance is expected to lower $f_{osc}$ and raise $t_{pd}$. Because EDP contains $t_{pd}^{2}$, it is expected to degrade faster than PDP.
+- **Measurement method:** the pre-layout power was obtained with `average(getData(":pwr" ?result "tran"))`, while the post-layout power was obtained from the supply current of `V1` multiplied by $1.8\text{ V}$. For a strict like-for-like comparison, both runs can be measured with the supply-current expression.
 
 ---
 
@@ -379,7 +506,7 @@ $$E_{cycle} = \frac{P_{avg}}{f_{osc}} = \frac{115.353\ \mu\text{W}}{13.2021\text
 | **Cadence Virtuoso 6.1.8** | Schematic and physical layout design |
 | **ADE Explorer / Maestro** | Simulation setup, initial conditions, and analysis |
 | **Spectre** | Circuit transient simulation |
-| **ViVA XL & Calculator** | Waveform visualization, frequency, and power measurements |
+| **ViVA XL & Calculator** | Waveform visualization, frequency, power, delay, PDP and EDP measurements |
 | **90 nm CMOS PDK (`gpdk090`)** | Transistor models (`pmos1v`, `nmos1v`) and physical design rules |
 | **Assura DRC** | Physical design-rule verification |
 | **Assura LVS** | Layout-to-schematic verification |
@@ -412,14 +539,25 @@ Current_Starved_Ring_Oscillator/
     ├── Screenshot from 2026-11-06 13-56-32.png
     ├── Screenshot from 2026-11-10 16-25-21.png
     ├── Screenshot from 2026-11-10 16-25-47.jpg
-    └── Screenshot from 2026-11-10 16-25-52.png
+    ├── Screenshot from 2026-11-10 16-25-52.png
+    ├── Screenshot 2026-11-20 203559.png
+    ├── Screenshot 2026-11-20 202940.png
+    ├── Screenshot 2026-11-20 202917.png
+    ├── Screenshot 2026-11-21 01.png
+    ├── Screenshot 2026-11-21 02.png
+    ├── Screenshot 2026-11-21 03.png
+    ├── Screenshot 2026-11-21 04.png
+    ├── Screenshot 2026-11-21 05.png
+    └── Screenshot 2026-11-21 06.png
 ```
 
 ---
 
 ## Conclusion
 
-A 3-stage Current-Starved Ring Oscillator was successfully designed, simulated, and physically verified at the 90 nm CMOS technology node (`gpdk090`) in Cadence Virtuoso. Pre-layout transient analysis with an initial condition of `/vosc = 0 V` confirmed stable oscillation at **$13.2021\text{ GHz}$** with an average power dissipation of **$115.353\ \mu\text{W}$** for $V_{DD} = 1.0\text{ V}$ and $V_{ctrl} = 1.8\text{ V}$. This corresponds to a propagation delay of about $12.62\text{ ps}$ per stage, a power-delay product of about $1.456\text{ fJ}$, and an energy-delay product of about $1.84 \times 10^{-26}\text{ J·s}$. The physical layout passed Assura DRC (`0` violations) and Assura LVS (`Schematic and Layout Match`) cleanly prior to QRC/RCX parasitic extraction.
+A 3-stage Current-Starved Ring Oscillator was successfully designed, simulated, and physically verified at the 90 nm CMOS technology node (`gpdk090`) in Cadence Virtuoso. Pre-layout transient analysis with an initial condition of `/vosc = 0 V` confirmed stable oscillation at **$13.2021\text{ GHz}$** with an average power dissipation of **$115.353\ \mu\text{W}$**. This corresponds to a propagation delay of about $12.62\text{ ps}$ per stage, a power-delay product of about $1.456\text{ fJ}$, and an energy-delay product of about $1.84 \times 10^{-26}\text{ J·s}$. The physical layout passed Assura DRC (`0` violations) and Assura LVS (`Schematic and Layout Match`), and Assura QRC/RCX parasitic extraction generated the `av_extracted` view.
+
+Post-layout simulation of the extracted view showed the effect of the interconnect parasitics: the oscillation frequency fell to **$5.487\text{ GHz}$**, the stage delay rose to **$30.37\text{ ps}$**, the average power rose to about **$259.9\ \mu\text{W}$**, the PDP rose to about **$7.894\text{ fJ}$**, and the EDP rose to about **$2.40 \times 10^{-25}\text{ J·s}$**. These results show that parasitic R and C have a large impact on the speed and energy efficiency of this small, high-frequency oscillator and must be considered in the design.
 
 ---
 
