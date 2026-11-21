@@ -475,15 +475,15 @@ $$E_{cycle} = \frac{P_{avg}}{f_{osc}} = \frac{259.9\ \mu\text{W}}{5.487\text{ GH
 
 ### Pre-Layout vs Post-Layout (RCX) Comparison
 
-| Metric | Formula | Pre-Layout | Post-Layout (RCX) | Change |
-| :--- | :--- | :--- | :--- | :--- |
-| **Oscillation frequency ($f_{osc}$)** | `frequency(VT("/Vosc"))` | $13.2021\text{ GHz}$ | $5.487\text{ GHz}$ | $-58.4\%$ |
-| **Period ($T$)** | $1/f_{osc}$ | $75.75\text{ ps}$ | $182.25\text{ ps}$ | $\times 2.4$ |
-| **Propagation delay ($t_{pd}$)** | $1/(2N f_{osc})$ | $12.62\text{ ps}$ | $30.37\text{ ps}$ | $+140.6\%$ |
-| **Average power ($P_{avg}$)** | see notes | $115.353\ \mu\text{W}$ | $259.9\ \mu\text{W}$ | $+125\%$ |
-| **PDP** | $P_{avg} \times t_{pd}$ | $1.456\text{ fJ}$ | $7.894\text{ fJ}$ | $\times 5.4$ |
-| **EDP** | $PDP \times t_{pd}$ | $1.84 \times 10^{-26}\text{ J·s}$ | $2.40 \times 10^{-25}\text{ J·s}$ | $\times 13$ |
-| **Energy per cycle** | $P_{avg}/f_{osc}$ | $8.74\text{ fJ}$ | $47.4\text{ fJ}$ | $\times 5.4$ |
+| Metric | Formula | Pre-Layout | Post-Layout (RCX) | 
+| :--- | :--- | :--- | :--- | 
+| **Oscillation frequency ($f_{osc}$)** | `frequency(VT("/Vosc"))` | $13.2021\text{ GHz}$ | $5.487\text{ GHz}$ | 
+| **Period ($T$)** | $1/f_{osc}$ | $75.75\text{ ps}$ | $182.25\text{ ps}$ | 
+| **Propagation delay ($t_{pd}$)** | $1/(2N f_{osc})$ | $12.62\text{ ps}$ | $30.37\text{ ps}$ | 
+| **Average power ($P_{avg}$)** | see notes | $115.353\ \mu\text{W}$ | $259.9\ \mu\text{W}$ | 
+| **PDP** | $P_{avg} \times t_{pd}$ | $1.456\text{ fJ}$ | $7.894\text{ fJ}$ | 
+| **EDP** | $PDP \times t_{pd}$ | $1.84 \times 10^{-26}\text{ J·s}$ | $2.40 \times 10^{-25}\text{ J·s}$ | 
+| **Energy per cycle** | $P_{avg}/f_{osc}$ | $8.74\text{ fJ}$ | $47.4\text{ fJ}$ | 
 
 ### Observations and Notes
 
