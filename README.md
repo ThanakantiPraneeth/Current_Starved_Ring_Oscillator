@@ -337,7 +337,7 @@ The extracted circuit continues to oscillate, with the output swinging between a
 
 **Post-layout output waveform, outputs table and supply current waveform (ADE Explorer):**
 
-![Post-Layout ADE Results](Screenshot%202026-11-21%20093127.png)
+![Post-Layout ADE Results](Screenshot%202026-11-21%20091738.png)
 
 ### Post-Layout Measurement Expressions
 
@@ -356,19 +356,19 @@ In the Calculator screenshots below, the supply-voltage factor in the expression
 
 **Post-layout frequency and average supply current of `V1` (`5.487 GHz` and `144.4 µA`):**
 
-![Post-Layout Frequency and Current](Screenshot%202026-11-21%20092935.png)
+![Post-Layout Frequency and Current](Screenshot%202026-11-21%20091213.png)
 
 **Post-layout propagation delay $t_{pd}$ (`30.37 ps`):**
 
-![Post-Layout tpd](Screenshot%202026-11-21%20093002.png)
+![Post-Layout tpd](Screenshot%202026-11-21%20091414.png)
 
 **Post-layout PDP (Calculator output `4.385 fJ` with the voltage factor set to 1; $\times\,1.8\text{ V}$ gives `7.894 fJ`):**
 
-![Post-Layout PDP](Screenshot%202026-11-21%20093031.png)
+![Post-Layout PDP](Screenshot%202026-11-21%20091452.png)
 
 **Post-layout EDP (Calculator output `133.2e-27 J·s` with the voltage factor set to 1; $\times\,1.8\text{ V}$ gives `2.40e-25 J·s`):**
 
-![Post-Layout EDP](Screenshot%202026-11-21%20093058.png)
+![Post-Layout EDP](Screenshot%202026-11-21%20091526.png)
 
 ### Post-Layout Results
 
