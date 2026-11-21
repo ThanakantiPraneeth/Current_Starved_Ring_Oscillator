@@ -310,7 +310,7 @@ To measure the effect of the layout parasitics, the extracted view was simulated
 
 **Post-layout testbench (`csro/csro_tb_new_o`):**
 
-![Post-Layout Testbench](Screenshot%202026-11-21%20084053.png)
+![Post-Layout Testbench](Screenshot%202026-11-21%20092910.png)
 
 > **Note:** The source labelling in the Design Specifications table (`V0` = $V_{DD}$, `V1` = $V_{ctrl}$) is the reverse of how the sources are connected in the schematic and in this testbench. In both, `V1` ($1.8\text{ V}$) feeds the supply rail and `V0` ($1\text{ V}$) drives the control input. All simulation results in this README use the voltages exactly as wired.
 
@@ -333,7 +333,7 @@ The extracted circuit continues to oscillate, with the output swinging between a
 
 **Post-layout output waveform, outputs table and supply current waveform (ADE Explorer):**
 
-![Post-Layout ADE Results](Screenshot%202026-11-21%2006.png)
+![Post-Layout ADE Results](Screenshot%202026-11-21%20093127.png)
 
 ### Post-Layout Measurement Expressions
 
@@ -350,19 +350,19 @@ The `:pwr` expression used before layout is not available from the testbench hie
 
 **Post-layout frequency and average supply current of `V1` (`5.487 GHz` and `144.4 µA`):**
 
-![Post-Layout Frequency and Current](Screenshot%202026-11-21%2002.png)
+![Post-Layout Frequency and Current](Screenshot%202026-11-21%20092935.png)
 
 **Post-layout propagation delay $t_{pd}$ (`30.37 ps`):**
 
-![Post-Layout tpd](Screenshot%202026-11-21%2003.png)
+![Post-Layout tpd](Screenshot%202026-11-21%20093002.png)
 
 **Post-layout PDP (`7.894 fJ` at $1.8\text{ V}$):**
 
-![Post-Layout PDP](Screenshot%202026-11-21%2004.png)
+![Post-Layout PDP](Screenshot%202026-11-21%20093031.png)
 
 **Post-layout EDP (`2.40e-25 J·s` at $1.8\text{ V}$):**
 
-![Post-Layout EDP](Screenshot%202026-11-21%2005.png)
+![Post-Layout EDP](Screenshot%202026-11-21%20093058.png)
 
 ### Post-Layout Results
 
@@ -543,12 +543,12 @@ Current_Starved_Ring_Oscillator/
     ├── Screenshot 2026-11-20 203559.png
     ├── Screenshot 2026-11-20 202940.png
     ├── Screenshot 2026-11-20 202917.png
-    ├── Screenshot 2026-11-21 01.png
-    ├── Screenshot 2026-11-21 02.png
-    ├── Screenshot 2026-11-21 03.png
-    ├── Screenshot 2026-11-21 04.png
-    ├── Screenshot 2026-11-21 05.png
-    └── Screenshot 2026-11-21 06.png
+    ├── Screenshot 2026-11-21 092910.png
+    ├── Screenshot 2026-11-21 092935.png
+    ├── Screenshot 2026-11-21 093002.png
+    ├── Screenshot 2026-11-21 093031.png
+    ├── Screenshot 2026-11-21 093058.png
+    └── Screenshot 2026-11-21 093127.png
 ```
 
 ---
