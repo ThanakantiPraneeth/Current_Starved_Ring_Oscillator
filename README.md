@@ -310,11 +310,11 @@ To measure the effect of the layout parasitics, the extracted view was simulated
 
 **Symbol of the `csro` cell (pins `Vctrl` and `Vosc`):**
 
-![CSRO Symbol](Screenshot%202026-11-21%20092850.png)
+![CSRO Symbol](Screenshot%202026-11-21%20082904.png)
 
 **Post-layout testbench (`csro/csro_tb_new_o`):**
 
-![Post-Layout Testbench](Screenshot%202026-11-21%20092910.png)
+![Post-Layout Testbench](Screenshot%202026-11-21%20084053.png)
 
 > **Note:** The source labelling in the Design Specifications table (`V0` = $V_{DD}$, `V1` = $V_{ctrl}$) is the reverse of how the sources are connected in the schematic and in this testbench. In both, `V1` ($1.8\text{ V}$) feeds the supply rail and `V0` ($1\text{ V}$) drives the control input. All simulation results in this README use the voltages exactly as wired.
 
