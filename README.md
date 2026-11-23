@@ -2,7 +2,7 @@
 
 Designing and simulating a **3-Stage Current-Starved Ring Oscillator (CSRO)**—often used as a Voltage-Controlled Oscillator (VCO)—in Cadence Virtuoso involves building a 12-transistor current-mirror biased inverter chain and running transient, frequency, power, and physical verification flows.
 
-This project presents the complete design, schematic implementation, initial-condition transient simulation, performance evaluation, physical layout, verification (DRC, LVS, and QRC/RCX parasitic extraction), and post-layout (RCX) re-simulation of a **3-Stage Current-Starved Ring Oscillator** using **90 nm CMOS technology (`gpdk090`)** in Cadence Virtuoso IC 6.1.8.
+This project presents the complete design, schematic implementation, initial-condition transient simulation, performance evaluation, physical layout, verification (DRC, LVS, and QRC/RCX parasitic extraction), and post-layout (RCX) re-simulation of a **3-Stage Current-Starved Ring Oscillator** using **90 nm CMOS technology (`gpdk090`)** in Cadence Virtuoso.
 
 ---
 
